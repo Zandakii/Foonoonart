@@ -202,6 +202,48 @@
   #leadDlg .row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
   #leadDlg .btn{padding:11px 18px}
   #leadDlg .err{margin:-6px 0 10px}
+
+  /* ===== scroll story ===== */
+  .story{position:relative;height:760vh}
+  .story-pin{position:sticky;top:68px;height:calc(100vh - 68px);overflow:hidden;background:#CDD4D7}
+  #storyCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .scap{position:absolute;inset-inline-start:max(32px,calc((100vw - 1240px)/2 + 24px));bottom:12%;max-width:430px;opacity:0;visibility:hidden;will-change:opacity,transform;pointer-events:none}
+  .scap h2{font-size:clamp(30px,3.6vw,46px);font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .scap p{font-size:18px;color:var(--steel);margin-top:12px;max-width:26em}
+  .scap .side{display:inline-block;font-size:14px;font-weight:500;color:var(--teal);margin-bottom:8px}
+  .scap-hero{bottom:auto;top:10%;max-width:560px}
+  .scap-hero h1{font-size:clamp(38px,5.2vw,66px);font-weight:300;letter-spacing:-.025em;line-height:1.05}
+  .scap-hero h1 b{font-weight:700;display:block}
+  .scroll-hint{font-size:15px!important;color:var(--graphite)!important;margin-top:28px!important;display:flex;align-items:center;gap:10px}
+  .scroll-hint::after{content:"";width:1px;height:34px;background:var(--graphite);animation:hint 1.8s ease-in-out infinite}
+  @keyframes hint{0%,100%{transform:scaleY(.3);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}}
+  .story.night .scap h2,.story.night .scap h1{color:#F2F2EF}
+  .story.night .scap p{color:#B9C2C5}
+  .story.night .scap .side{color:var(--sun)}
+  #storyFrame{position:absolute;top:0;inset-inline-end:0;width:min(460px,40vw);height:100%;border:0;opacity:0;pointer-events:none;background:#EEF1F2;z-index:3;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  .mini-ui{position:absolute;top:18px;inset-inline-start:max(24px,calc((100vw - 1240px)/2 + 24px));display:flex;align-items:center;gap:14px;z-index:3;opacity:0;pointer-events:none;transition:opacity .35s}
+  .story.live .mini-ui{opacity:1;pointer-events:auto}
+  .mini-hint{font-size:13.5px;color:#B9C2C5}
+  .story.live #storyCanvas{cursor:grab;touch-action:none}
+  .story.live #storyCanvas:active{cursor:grabbing}
+  @media (max-width:900px){#storyFrame{inset-inline:0;top:auto;bottom:0;width:100%;height:56%}.mini-hint{display:none}}
+  .story-ui{position:absolute;inset-inline:0;bottom:0;display:flex;align-items:center;gap:18px;padding:0 max(32px,calc((100vw - 1240px)/2 + 24px)) 22px;z-index:2;transition:opacity .3s}
+  .story.live .story-ui,.story.ending .story-ui{opacity:0;pointer-events:none}
+  .story-bar{flex:1;height:2px;background:rgba(38,48,53,.18)}
+  .story-bar span{display:block;height:100%;background:var(--teal);transform:scaleX(0);transform-origin:left}
+  [dir=rtl] .story-bar span{transform-origin:right}
+  .story.night .story-bar{background:rgba(255,255,255,.2)}
+  .story.night .story-bar span{background:var(--sun)}
+  .story-skip{font-size:14px;color:var(--graphite);font-weight:500}
+  .story.night .story-skip{color:#F2F2EF}
+  .hero{display:none}
+  .story-live .wa-float{opacity:0;pointer-events:none}
+  .nostory .hero{display:block}
+  .nostory .story{display:none}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none}.scroll-hint::after{animation:none}}
+  @media (max-width:900px){.story{height:640vh}.scap{inset-inline:20px;bottom:9%;max-width:none}.scap-hero{top:6%}.scap p{font-size:16px}.scap h2{font-size:28px}}
   /* printable quote (Save as PDF) */
   #quote{display:none}
   @media print{
@@ -324,6 +366,20 @@
   .op.tri .info{font-size:12.5px;color:var(--steel)}
   #triSet legend{display:flex;justify-content:space-between;gap:10px;width:100%;align-items:baseline}
   #triSet .ophint{margin:0;font-size:12px;direction:ltr;unicode-bidi:isolate}
+  /* shown inside the homepage story */
+  .embed header.top,.embed footer{display:none}
+  .embed .cfg{height:100vh;min-height:0;border:0}
+  /* options only (the homepage shows the pergola itself on the table) */
+  .embed-panel .stage{display:none}
+  .embed-panel .cfg-grid{grid-template-columns:1fr}
+  .embed-panel .cfg{height:100vh!important;min-height:0!important;display:grid;grid-template-rows:1fr auto}
+  .embed-panel .cfg-grid{min-height:0;height:100%}
+  .embed-panel .pricebar{position:sticky;bottom:0;flex-direction:column;align-items:stretch;gap:10px;padding:14px 18px}
+  .embed-panel .pricebar .note{display:none}
+  .embed-panel .pricebar .actions{display:flex;gap:10px}
+  .embed-panel .pricebar .actions .btn{flex:1;text-align:center}
+  .embed-panel .panel{overflow:auto;height:100%}
+  .embed-panel body{overflow:hidden}
 </style>
 </head>
 <body>
@@ -736,7 +792,7 @@ const T = {
   abP2:"Today we design, manufacture and install glass roofs and aluminium systems for homes, villas, restaurants and businesses from our factory in 6th of October.",
   t1:"Alshishani is founded in Jordan, building in wrought iron.",t2y:"Expansion",t2:"An aluminium department opens, making doors and windows.",t3y:"Today",t3:"Fonoon makes motorised glass roofs and folding systems in Egypt.",
   pr1:"Dust-proof",pr2:"Water-tight",pr3:"Heat-insulated",pr4:"Quiet",
-  ctTitle:"Visit us or get in touch",ctAddrL:"Factory",ctAddr:"Industrial Zone, 6th of October, Cairo, Egypt",ctPhoneL:"Mobile and WhatsApp",ctMailL:"Email",lUmbType:"Frame",lQty:"Quantity",lPrint:"Logo print on 4 sections (+500 EGP per umbrella)",bPrint:"Logo print",discOff:p=>`${p}% off`,discRow:p=>`Quantity discount ${p}%`,bUmbOnly:"Umbrella with 50 × 50 cm base",bBaseP:"Larger base, 60 × 60 cm",bUnit:"Price per umbrella",bTotal:"Total",cAnthracite:"Anthracite",cSilver:"Silver",cChampagne:"Champagne",cBronze:"Bronze",cCream:"Cream",cGreen:"Dark green",uCream:"Cream",uTaupe:"Taupe",uTerracotta:"Terracotta",uBurgundy:"Burgundy",uOlive:"Olive green",uBottle:"Bottle green",uNavy:"Navy blue",uCharcoal:"Charcoal",lUmbBase:"Base",uStony:"Stony",uMarble:"Marble",baseVal:(k,c)=>`${k}, ${c} × ${c} cm`,lUmbFabric:"Fabric",uCanvas:"Canvas",uHdpe:"HDPE",uWaterproof:"Acrylic waterproof",uCanvasD:"Canvas outdoor fabric, UV resistant",uHdpeD:"HDPE shade fabric, breathable and UV resistant",uWaterproofD:"Acrylic waterproof outdoor fabric, UV resistant",uWood:"Wood",uAlu:"Aluminium",lUmbSize:"Size",lUmbShape:"Shape",uRound:"Round",uSquare:"Square",lUmbCol:"Fabric colour",uSand:"Sand",openUmb:"Open the umbrella",closeUmb:"Close the umbrella",priceAsk:"Price on request",priceAskNote:"Send us your choice on WhatsApp for the price.",bUmbHeight:"Overall height",bUmbBase:"Base",umbBaseVal:"Heavy square base, 50 × 50 cm",bUmbCanopy:"Canopy",umbCanopyVal:"Weather-resistant outdoor fabric, UV resistant, water repellent",bUmbRibs:"Ribs",umbFront:"Front view",umbTop:"Top view",bQty:"Price",perUmb:"per umbrella",dlgTitle:"Save your quote",dlgText:"Your name and phone are printed on the quote, so our team can follow up on the same design.",dlgName:"Full name",dlgPhone:"Mobile number",dlgCancel:"Cancel",errName:"Enter your name.",errPhone:"Enter a mobile number with at least 8 digits.",preparedFor:"Prepared for",quoteNo:"Quote no.",
+  ctTitle:"Visit us or get in touch",ctAddrL:"Factory",ctAddr:"Industrial Zone, 6th of October, Cairo, Egypt",ctPhoneL:"Mobile and WhatsApp",ctMailL:"Email",lUmbType:"Frame",scrollHint:"Scroll to walk around",sideFront2:"Front",sideRight2:"Right side",sideRoof2:"Roof",sideLeft2:"Left side",sFoldT:"Folding system",sFoldP:"Frameless 10 mm glass panels fold to one side and open up the whole front.",sSlideT:"Sliding system",sSlideP:"Glass panels glide past each other on slim aluminium tracks.",sRoofT:"Retractable fabric pergola",sRoofP:"The waterproof fabric folds back along the rails by remote, from full shade to open sky. LED lighting comes on in the evening.",sPanoT:"Panorama system",sPanoP:"Three glass panels slide down for a clear, open view.",sBuildT:"Now build yours",sBuildP:"Pick a roof, choose the glass for every side and see the price straight away.",storySkip:"Skip to the builder",lQty:"Quantity",openAll:"Open roof and glass",closeAll:"Close roof and glass",miniHint:"Drag to walk around the table",lPrint:"Logo print on 4 sections (+500 EGP per umbrella)",bPrint:"Logo print",discOff:p=>`${p}% off`,discRow:p=>`Quantity discount ${p}%`,bUmbOnly:"Umbrella with 50 × 50 cm base",bBaseP:"Larger base, 60 × 60 cm",bUnit:"Price per umbrella",bTotal:"Total",cAnthracite:"Anthracite",cSilver:"Silver",cChampagne:"Champagne",cBronze:"Bronze",cCream:"Cream",cGreen:"Dark green",uCream:"Cream",uTaupe:"Taupe",uTerracotta:"Terracotta",uBurgundy:"Burgundy",uOlive:"Olive green",uBottle:"Bottle green",uNavy:"Navy blue",uCharcoal:"Charcoal",lUmbBase:"Base",uStony:"Stony",uMarble:"Marble",baseVal:(k,c)=>`${k}, ${c} × ${c} cm`,lUmbFabric:"Fabric",uCanvas:"Canvas",uHdpe:"HDPE",uWaterproof:"Acrylic waterproof",uCanvasD:"Canvas outdoor fabric, UV resistant",uHdpeD:"HDPE shade fabric, breathable and UV resistant",uWaterproofD:"Acrylic waterproof outdoor fabric, UV resistant",uWood:"Wood",uAlu:"Aluminium",lUmbSize:"Size",lUmbShape:"Shape",uRound:"Round",uSquare:"Square",lUmbCol:"Fabric colour",uSand:"Sand",openUmb:"Open the umbrella",closeUmb:"Close the umbrella",priceAsk:"Price on request",priceAskNote:"Send us your choice on WhatsApp for the price.",bUmbHeight:"Overall height",bUmbBase:"Base",umbBaseVal:"Heavy square base, 50 × 50 cm",bUmbCanopy:"Canopy",umbCanopyVal:"Weather-resistant outdoor fabric, UV resistant, water repellent",bUmbRibs:"Ribs",umbFront:"Front view",umbTop:"Top view",bQty:"Price",perUmb:"per umbrella",dlgTitle:"Save your quote",dlgText:"Your name and phone are printed on the quote, so our team can follow up on the same design.",dlgName:"Full name",dlgPhone:"Mobile number",dlgCancel:"Cancel",errName:"Enter your name.",errPhone:"Enter a mobile number with at least 8 digits.",preparedFor:"Prepared for",quoteNo:"Quote no.",
   ctBoxT:"Book a free site visit",ctBoxP:"Send us your location and a few photos of the space. We will measure, advise on the right system and give you a final price.",ctBoxBtn:"Message us on WhatsApp",
   ftName:"Fonoon Group for Engineering Industries",ftLoc:"6th of October, Cairo",
   waHello:"Hello Fonoon, I would like a quote for:",waContact:"Hello Fonoon, I would like to book a site visit.",
@@ -777,7 +833,7 @@ const T = {
   abP2:"اليوم نصمم ونصنع ونركّب الأسقف الزجاجية وأنظمة الألومنيوم للمنازل والفلل والمطاعم والشركات من مصنعنا في مدينة 6 أكتوبر.",
   t1:"تأسيس شركة الششاني في الأردن في مجال الحديد المشغول.",t2y:"التوسع",t2:"افتتاح قسم الألومنيوم لتصنيع الأبواب والشبابيك.",t3y:"اليوم",t3:"فنون تصنع الأسقف الزجاجية الكهربائية والأنظمة القابلة للطي في مصر.",
   pr1:"عازل للأتربة",pr2:"عازل للمياه",pr3:"عازل للحرارة",pr4:"عازل للضوضاء",
-  ctTitle:"زورنا أو تواصل معنا",ctAddrL:"المصنع",ctAddr:"المنطقة الصناعية، مدينة 6 أكتوبر، القاهرة، مصر",ctPhoneL:"موبايل وواتساب",ctMailL:"البريد الإلكتروني",lUmbType:"الهيكل",lQty:"العدد",lPrint:"طباعة لوجو على 4 أجزاء (+500 جنيه للشمسية)",bPrint:"طباعة اللوجو",discOff:p=>`خصم ${p}%`,discRow:p=>`خصم الكمية ${p}%`,bUmbOnly:"الشمسية بقاعدة 50 × 50 سم",bBaseP:"قاعدة أكبر 60 × 60 سم",bUnit:"سعر الشمسية",bTotal:"الإجمالي",cAnthracite:"أنثراسايت",cSilver:"فضي",cChampagne:"شامبين",cBronze:"برونزي",cCream:"كريمي",cGreen:"أخضر غامق",uCream:"كريمي",uTaupe:"بيج غامق",uTerracotta:"طوبي",uBurgundy:"نبيتي",uOlive:"زيتي",uBottle:"أخضر زجاجي",uNavy:"كحلي",uCharcoal:"فحمي",lUmbBase:"القاعدة",uStony:"زلط",uMarble:"رخام",baseVal:(k,c)=>`${k}، ${c} × ${c} سم`,lUmbFabric:"القماش",uCanvas:"دك",uHdpe:"كلارو",uWaterproof:"أكريليك ووتر بروف",uCanvasD:"قماش دك خارجي مقاوم للأشعة فوق البنفسجية",uHdpeD:"قماش كلارو (HDPE) يسمح بمرور الهواء ومقاوم للأشعة فوق البنفسجية",uWaterproofD:"قماش أكريليك ووتر بروف خارجي مقاوم للماء والأشعة فوق البنفسجية",uWood:"خشب",uAlu:"ألومنيوم",lUmbSize:"المقاس",lUmbShape:"الشكل",uRound:"دائرية",uSquare:"مربعة",lUmbCol:"لون القماش",uSand:"رملي",openUmb:"افتح الشمسية",closeUmb:"اقفل الشمسية",priceAsk:"السعر عند الطلب",priceAskNote:"أرسل لنا اختيارك على واتساب لمعرفة السعر.",bUmbHeight:"الارتفاع الكلي",bUmbBase:"القاعدة",umbBaseVal:"قاعدة مربعة ثقيلة 50 × 50 سم",bUmbCanopy:"القماش",umbCanopyVal:"قماش خارجي مقاوم للعوامل الجوية والأشعة فوق البنفسجية وطارد للماء",bUmbRibs:"الأضلاع",umbFront:"منظر أمامي",umbTop:"منظر علوي",bQty:"السعر",perUmb:"للشمسية",dlgTitle:"احفظ عرض السعر",dlgText:"يُطبع اسمك ورقم موبايلك على عرض السعر، ليتابع فريقنا معك على نفس التصميم.",dlgName:"الاسم بالكامل",dlgPhone:"رقم الموبايل",dlgCancel:"إلغاء",errName:"أدخل اسمك.",errPhone:"أدخل رقم موبايل من 8 أرقام على الأقل.",preparedFor:"مُعد لـ",quoteNo:"رقم العرض",
+  ctTitle:"زورنا أو تواصل معنا",ctAddrL:"المصنع",ctAddr:"المنطقة الصناعية، مدينة 6 أكتوبر، القاهرة، مصر",ctPhoneL:"موبايل وواتساب",ctMailL:"البريد الإلكتروني",lUmbType:"الهيكل",scrollHint:"مرّر لتتجول حولها",sideFront2:"الأمام",sideRight2:"الجانب الأيمن",sideRoof2:"السقف",sideLeft2:"الجانب الأيسر",sFoldT:"نظام فولدينج",sFoldP:"ألواح زجاج 10 مم بدون إطار تنطوي على جانب واحد وتفتح الواجهة بالكامل.",sSlideT:"نظام سحاب",sSlideP:"ألواح زجاج تنزلق فوق بعضها على مجاري ألومنيوم رفيعة.",sRoofT:"برجولة قماش متحركة",sRoofP:"القماش المقاوم للماء ينطوي على المجاري بالريموت، من ظل كامل إلى سماء مفتوحة، وإضاءة LED تعمل في المساء.",sPanoT:"نظام بانوراما",sPanoP:"ثلاثة ألواح زجاج تنزل لأسفل لرؤية مفتوحة وواضحة.",sBuildT:"والآن صمّم برجولتك",sBuildP:"اختر السقف، واختر الزجاج لكل جانب، واعرف السعر فورًا.",storySkip:"انتقل إلى المصمم",lQty:"العدد",openAll:"افتح السقف والزجاج",closeAll:"أغلق السقف والزجاج",miniHint:"اسحب لتتجول حول الطاولة",lPrint:"طباعة لوجو على 4 أجزاء (+500 جنيه للشمسية)",bPrint:"طباعة اللوجو",discOff:p=>`خصم ${p}%`,discRow:p=>`خصم الكمية ${p}%`,bUmbOnly:"الشمسية بقاعدة 50 × 50 سم",bBaseP:"قاعدة أكبر 60 × 60 سم",bUnit:"سعر الشمسية",bTotal:"الإجمالي",cAnthracite:"أنثراسايت",cSilver:"فضي",cChampagne:"شامبين",cBronze:"برونزي",cCream:"كريمي",cGreen:"أخضر غامق",uCream:"كريمي",uTaupe:"بيج غامق",uTerracotta:"طوبي",uBurgundy:"نبيتي",uOlive:"زيتي",uBottle:"أخضر زجاجي",uNavy:"كحلي",uCharcoal:"فحمي",lUmbBase:"القاعدة",uStony:"زلط",uMarble:"رخام",baseVal:(k,c)=>`${k}، ${c} × ${c} سم`,lUmbFabric:"القماش",uCanvas:"دك",uHdpe:"كلارو",uWaterproof:"أكريليك ووتر بروف",uCanvasD:"قماش دك خارجي مقاوم للأشعة فوق البنفسجية",uHdpeD:"قماش كلارو (HDPE) يسمح بمرور الهواء ومقاوم للأشعة فوق البنفسجية",uWaterproofD:"قماش أكريليك ووتر بروف خارجي مقاوم للماء والأشعة فوق البنفسجية",uWood:"خشب",uAlu:"ألومنيوم",lUmbSize:"المقاس",lUmbShape:"الشكل",uRound:"دائرية",uSquare:"مربعة",lUmbCol:"لون القماش",uSand:"رملي",openUmb:"افتح الشمسية",closeUmb:"اقفل الشمسية",priceAsk:"السعر عند الطلب",priceAskNote:"أرسل لنا اختيارك على واتساب لمعرفة السعر.",bUmbHeight:"الارتفاع الكلي",bUmbBase:"القاعدة",umbBaseVal:"قاعدة مربعة ثقيلة 50 × 50 سم",bUmbCanopy:"القماش",umbCanopyVal:"قماش خارجي مقاوم للعوامل الجوية والأشعة فوق البنفسجية وطارد للماء",bUmbRibs:"الأضلاع",umbFront:"منظر أمامي",umbTop:"منظر علوي",bQty:"السعر",perUmb:"للشمسية",dlgTitle:"احفظ عرض السعر",dlgText:"يُطبع اسمك ورقم موبايلك على عرض السعر، ليتابع فريقنا معك على نفس التصميم.",dlgName:"الاسم بالكامل",dlgPhone:"رقم الموبايل",dlgCancel:"إلغاء",errName:"أدخل اسمك.",errPhone:"أدخل رقم موبايل من 8 أرقام على الأقل.",preparedFor:"مُعد لـ",quoteNo:"رقم العرض",
   ctBoxT:"احجز معاينة مجانية",ctBoxP:"أرسل لنا موقعك وبعض الصور للمكان. سنأخذ المقاسات وننصحك بالنظام المناسب ونعطيك السعر النهائي.",ctBoxBtn:"راسلنا على واتساب",
   ftName:"مجموعة فنون للصناعات الهندسية",ftLoc:"مدينة 6 أكتوبر، القاهرة",
   waHello:"مرحبًا فنون، أريد عرض سعر لـ:",waContact:"مرحبًا فنون، أريد حجز معاينة للموقع.",
@@ -816,6 +872,7 @@ const c3d = $("c3d");
    Falls back to the simple canvas drawing if WebGL is not available. */
 const GL = (() => {
   let gl = null;
+  if (/[?&]embed=panel/.test(location.search)) return null;   // options-only view inside the homepage: no 3D needed here
   try { gl = c3d.getContext("webgl", {antialias:true, alpha:true, premultipliedAlpha:false, preserveDrawingBuffer:true}); } catch(e){}
   if (!gl) return null;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
@@ -1546,9 +1603,12 @@ document.addEventListener("click", e => {
   if (e.target.closest(".op[data-id], .dlab.tag, .po, #setAll")) return;
   selectOp(null);
 });
+// inside the homepage story: send the design to the page, which builds it on the table
+function tellParent(){ if (window.parent !== window) try { parent.postMessage({ type:"fonoonSpec", spec: V3.spec }, "*"); } catch(e){} }
 function selectOp(id, focus){
   selOp = id;
   if (V3.spec) V3.spec.sel = id;
+  tellParent();
   document.querySelectorAll(".op").forEach(r => r.classList.toggle("on", r.dataset.id === id));
   if (focus){ const s = document.querySelector(`.op select[data-id="${id}"]`); if (s){ s.focus({preventScroll:true}); s.closest(".op").scrollIntoView({block:"nearest"}); } }
   drawPlan();
@@ -1722,6 +1782,7 @@ function update(){
   $("waSend").href = "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(lines.join("\n"));
 
   V3.spec = spec;
+  tellParent();
   $("dimTag").textContent = `${w} m × ${d} m × ${hf} m`;
   drawPlan();
 }
@@ -1855,6 +1916,8 @@ function sendLead(lead){
 }
 
 /* ========================= INIT ========================= */
+if (/[?&]embed/.test(location.search)) document.documentElement.classList.add("embed");
+if (/[?&]embed=panel/.test(location.search)) document.documentElement.classList.add("embed-panel");
 $("year").textContent = new Date().getFullYear();
 $("langBtn").addEventListener("click", () => { lang = lang === "en" ? "ar" : "en"; applyLang(); });
 $("calcForm").addEventListener("input", e => { if (!e.target.closest("#opList") && e.target.id !== "setAll") update(); });

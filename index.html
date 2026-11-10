@@ -202,6 +202,48 @@
   #leadDlg .row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
   #leadDlg .btn{padding:11px 18px}
   #leadDlg .err{margin:-6px 0 10px}
+
+  /* ===== scroll story ===== */
+  .story{position:relative;height:760vh}
+  .story-pin{position:sticky;top:68px;height:calc(100vh - 68px);overflow:hidden;background:#CDD4D7}
+  #storyCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .scap{position:absolute;inset-inline-start:max(32px,calc((100vw - 1240px)/2 + 24px));bottom:12%;max-width:430px;opacity:0;visibility:hidden;will-change:opacity,transform;pointer-events:none}
+  .scap h2{font-size:clamp(30px,3.6vw,46px);font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .scap p{font-size:18px;color:var(--steel);margin-top:12px;max-width:26em}
+  .scap .side{display:inline-block;font-size:14px;font-weight:500;color:var(--teal);margin-bottom:8px}
+  .scap-hero{bottom:auto;top:10%;max-width:560px}
+  .scap-hero h1{font-size:clamp(38px,5.2vw,66px);font-weight:300;letter-spacing:-.025em;line-height:1.05}
+  .scap-hero h1 b{font-weight:700;display:block}
+  .scroll-hint{font-size:15px!important;color:var(--graphite)!important;margin-top:28px!important;display:flex;align-items:center;gap:10px}
+  .scroll-hint::after{content:"";width:1px;height:34px;background:var(--graphite);animation:hint 1.8s ease-in-out infinite}
+  @keyframes hint{0%,100%{transform:scaleY(.3);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}}
+  .story.night .scap h2,.story.night .scap h1{color:#F2F2EF}
+  .story.night .scap p{color:#B9C2C5}
+  .story.night .scap .side{color:var(--sun)}
+  #storyFrame{position:absolute;top:0;inset-inline-end:0;width:min(460px,40vw);height:100%;border:0;opacity:0;pointer-events:none;background:#EEF1F2;z-index:3;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  .mini-ui{position:absolute;top:18px;inset-inline-start:max(24px,calc((100vw - 1240px)/2 + 24px));display:flex;align-items:center;gap:14px;z-index:3;opacity:0;pointer-events:none;transition:opacity .35s}
+  .story.live .mini-ui{opacity:1;pointer-events:auto}
+  .mini-hint{font-size:13.5px;color:#B9C2C5}
+  .story.live #storyCanvas{cursor:grab;touch-action:none}
+  .story.live #storyCanvas:active{cursor:grabbing}
+  @media (max-width:900px){#storyFrame{inset-inline:0;top:auto;bottom:0;width:100%;height:56%}.mini-hint{display:none}}
+  .story-ui{position:absolute;inset-inline:0;bottom:0;display:flex;align-items:center;gap:18px;padding:0 max(32px,calc((100vw - 1240px)/2 + 24px)) 22px;z-index:2;transition:opacity .3s}
+  .story.live .story-ui,.story.ending .story-ui{opacity:0;pointer-events:none}
+  .story-bar{flex:1;height:2px;background:rgba(38,48,53,.18)}
+  .story-bar span{display:block;height:100%;background:var(--teal);transform:scaleX(0);transform-origin:left}
+  [dir=rtl] .story-bar span{transform-origin:right}
+  .story.night .story-bar{background:rgba(255,255,255,.2)}
+  .story.night .story-bar span{background:var(--sun)}
+  .story-skip{font-size:14px;color:var(--graphite);font-weight:500}
+  .story.night .story-skip{color:#F2F2EF}
+  .hero{display:none}
+  .story-live .wa-float{opacity:0;pointer-events:none}
+  .nostory .hero{display:block}
+  .nostory .story{display:none}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none}.scroll-hint::after{animation:none}}
+  @media (max-width:900px){.story{height:640vh}.scap{inset-inline:20px;bottom:9%;max-width:none}.scap-hero{top:6%}.scap p{font-size:16px}.scap h2{font-size:28px}}
   /* printable quote (Save as PDF) */
   #quote{display:none}
   @media print{
@@ -290,6 +332,31 @@
 
 <main id="top">
 
+<section class="story" id="story">
+  <div class="story-pin" id="storyPin">
+    <canvas id="storyCanvas" aria-label="A retractable fabric pergola with a folding, a sliding and a panorama glass system and a dining table inside"></canvas>
+    <div class="scap scap-hero" data-a="0" data-b=".07">
+      <h1><span data-t="heroA">Open to the sky.</span><b data-t="heroB">Sealed against the weather.</b></h1>
+      <p class="lead" data-t="heroLead">Retractable fabric pergolas, smart aluminium roofs, and folding, sliding and panorama glass systems, made in our factory in 6th of October and installed by our own team.</p>
+      <p class="scroll-hint" data-t="scrollHint">Scroll to walk around</p>
+    </div>
+    <div class="scap" data-a=".15" data-b=".27"><span class="side" data-t="sideFront2">Front</span><h2 data-t="sFoldT">Folding system</h2><p data-t="sFoldP">Frameless 10 mm glass panels fold to one side and open up the whole front.</p></div>
+    <div class="scap" data-a=".30" data-b=".40"><span class="side" data-t="sideRight2">Right side</span><h2 data-t="sSlideT">Sliding system</h2><p data-t="sSlideP">Glass panels glide past each other on slim aluminium tracks.</p></div>
+    <div class="scap" data-a=".44" data-b=".53"><span class="side" data-t="sideRoof2">Roof</span><h2 data-t="sRoofT">Retractable fabric pergola</h2><p data-t="sRoofP">The waterproof fabric folds back along the rails by remote, from full shade to open sky. LED lighting comes on in the evening.</p></div>
+    <div class="scap" data-a=".57" data-b=".66"><span class="side" data-t="sideLeft2">Left side</span><h2 data-t="sPanoT">Panorama system</h2><p data-t="sPanoP">Three glass panels slide down for a clear, open view.</p></div>
+    <div class="scap" data-a=".71" data-b=".84"><h2 data-t="sBuildT">Now build yours</h2><p data-t="sBuildP">Pick a roof, choose the glass for every side and see the price straight away.</p></div>
+    <iframe id="storyFrame" data-src="pergola.html?embed=panel" title="Pergola builder options" tabindex="-1"></iframe>
+    <div class="mini-ui">
+      <button type="button" class="opbtn" id="miniOpen" data-t="openAll">Open roof and glass</button>
+      <span class="mini-hint" data-t="miniHint">Drag to walk around the table</span>
+    </div>
+    <div class="story-ui">
+      <div class="story-bar"><span id="storyBar"></span></div>
+      <a href="#products" class="story-skip" id="storySkip" data-t="storySkip">Skip to the builder</a>
+    </div>
+  </div>
+</section>
+
 <section class="hero">
   <div class="wrap">
     <div>
@@ -306,6 +373,18 @@
       </div>
     </div>
     <div class="hero-art" id="heroArt" aria-hidden="true"></div>
+  </div>
+</section>
+
+
+
+<section class="block" id="products">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-t="prTitle">Our systems</h2>
+      <p class="muted" data-t="prIntro">Every system is built to keep out dust, water, heat and noise, and is made to your exact measurements.</p>
+    </div>
+    <div class="products" id="productList"></div>
   </div>
 </section>
 
@@ -547,16 +626,6 @@
       <button type="button" class="btn btn-light" id="pdfBtn" data-t="pdfLbl">Save as PDF</button>
       <a class="btn btn-primary" id="waSend" href="#" target="_blank" rel="noopener" data-t="pSend">Send on WhatsApp</a>
     </div>
-  </div>
-</section>
-
-<section class="block" id="products">
-  <div class="wrap">
-    <div class="head">
-      <h2 data-t="prTitle">Our systems</h2>
-      <p class="muted" data-t="prIntro">Every system is built to keep out dust, water, heat and noise, and is made to your exact measurements.</p>
-    </div>
-    <div class="products" id="productList"></div>
   </div>
 </section>
 
@@ -825,7 +894,7 @@ const T = {
   abP2:"Today we design, manufacture and install glass roofs and aluminium systems for homes, villas, restaurants and businesses from our factory in 6th of October.",
   t1:"Alshishani is founded in Jordan, building in wrought iron.",t2y:"Expansion",t2:"An aluminium department opens, making doors and windows.",t3y:"Today",t3:"Fonoon makes motorised glass roofs and folding systems in Egypt.",
   pr1:"Dust-proof",pr2:"Water-tight",pr3:"Heat-insulated",pr4:"Quiet",
-  ctTitle:"Visit us or get in touch",ctAddrL:"Factory",ctAddr:"Industrial Zone, 6th of October, Cairo, Egypt",ctPhoneL:"Mobile and WhatsApp",ctMailL:"Email",lUmbType:"Frame",lQty:"Quantity",lPrint:"Logo print on 4 sections (+500 EGP per umbrella)",bPrint:"Logo print",discOff:p=>`${p}% off`,discRow:p=>`Quantity discount ${p}%`,bUmbOnly:"Umbrella with 50 × 50 cm base",bBaseP:"Larger base, 60 × 60 cm",bUnit:"Price per umbrella",bTotal:"Total",cAnthracite:"Anthracite",cSilver:"Silver",cChampagne:"Champagne",cBronze:"Bronze",cCream:"Cream",cGreen:"Dark green",uCream:"Cream",uTaupe:"Taupe",uTerracotta:"Terracotta",uBurgundy:"Burgundy",uOlive:"Olive green",uBottle:"Bottle green",uNavy:"Navy blue",uCharcoal:"Charcoal",lUmbBase:"Base",uStony:"Stony",uMarble:"Marble",baseVal:(k,c)=>`${k}, ${c} × ${c} cm`,lUmbFabric:"Fabric",uCanvas:"Canvas",uHdpe:"HDPE",uWaterproof:"Acrylic waterproof",uCanvasD:"Canvas outdoor fabric, UV resistant",uHdpeD:"HDPE shade fabric, breathable and UV resistant",uWaterproofD:"Acrylic waterproof outdoor fabric, UV resistant",uWood:"Wood",uAlu:"Aluminium",lUmbSize:"Size",lUmbShape:"Shape",uRound:"Round",uSquare:"Square",lUmbCol:"Fabric colour",uSand:"Sand",openUmb:"Open the umbrella",closeUmb:"Close the umbrella",priceAsk:"Price on request",priceAskNote:"Send us your choice on WhatsApp for the price.",bUmbHeight:"Overall height",bUmbBase:"Base",umbBaseVal:"Heavy square base, 50 × 50 cm",bUmbCanopy:"Canopy",umbCanopyVal:"Weather-resistant outdoor fabric, UV resistant, water repellent",bUmbRibs:"Ribs",umbFront:"Front view",umbTop:"Top view",bQty:"Price",perUmb:"per umbrella",dlgTitle:"Save your quote",dlgText:"Your name and phone are printed on the quote, so our team can follow up on the same design.",dlgName:"Full name",dlgPhone:"Mobile number",dlgCancel:"Cancel",errName:"Enter your name.",errPhone:"Enter a mobile number with at least 8 digits.",preparedFor:"Prepared for",quoteNo:"Quote no.",
+  ctTitle:"Visit us or get in touch",ctAddrL:"Factory",ctAddr:"Industrial Zone, 6th of October, Cairo, Egypt",ctPhoneL:"Mobile and WhatsApp",ctMailL:"Email",lUmbType:"Frame",scrollHint:"Scroll to walk around",sideFront2:"Front",sideRight2:"Right side",sideRoof2:"Roof",sideLeft2:"Left side",sFoldT:"Folding system",sFoldP:"Frameless 10 mm glass panels fold to one side and open up the whole front.",sSlideT:"Sliding system",sSlideP:"Glass panels glide past each other on slim aluminium tracks.",sRoofT:"Retractable fabric pergola",sRoofP:"The waterproof fabric folds back along the rails by remote, from full shade to open sky. LED lighting comes on in the evening.",sPanoT:"Panorama system",sPanoP:"Three glass panels slide down for a clear, open view.",sBuildT:"Now build yours",sBuildP:"Pick a roof, choose the glass for every side and see the price straight away.",storySkip:"Skip to the builder",lQty:"Quantity",openAll:"Open roof and glass",closeAll:"Close roof and glass",miniHint:"Drag to walk around the table",lPrint:"Logo print on 4 sections (+500 EGP per umbrella)",bPrint:"Logo print",discOff:p=>`${p}% off`,discRow:p=>`Quantity discount ${p}%`,bUmbOnly:"Umbrella with 50 × 50 cm base",bBaseP:"Larger base, 60 × 60 cm",bUnit:"Price per umbrella",bTotal:"Total",cAnthracite:"Anthracite",cSilver:"Silver",cChampagne:"Champagne",cBronze:"Bronze",cCream:"Cream",cGreen:"Dark green",uCream:"Cream",uTaupe:"Taupe",uTerracotta:"Terracotta",uBurgundy:"Burgundy",uOlive:"Olive green",uBottle:"Bottle green",uNavy:"Navy blue",uCharcoal:"Charcoal",lUmbBase:"Base",uStony:"Stony",uMarble:"Marble",baseVal:(k,c)=>`${k}, ${c} × ${c} cm`,lUmbFabric:"Fabric",uCanvas:"Canvas",uHdpe:"HDPE",uWaterproof:"Acrylic waterproof",uCanvasD:"Canvas outdoor fabric, UV resistant",uHdpeD:"HDPE shade fabric, breathable and UV resistant",uWaterproofD:"Acrylic waterproof outdoor fabric, UV resistant",uWood:"Wood",uAlu:"Aluminium",lUmbSize:"Size",lUmbShape:"Shape",uRound:"Round",uSquare:"Square",lUmbCol:"Fabric colour",uSand:"Sand",openUmb:"Open the umbrella",closeUmb:"Close the umbrella",priceAsk:"Price on request",priceAskNote:"Send us your choice on WhatsApp for the price.",bUmbHeight:"Overall height",bUmbBase:"Base",umbBaseVal:"Heavy square base, 50 × 50 cm",bUmbCanopy:"Canopy",umbCanopyVal:"Weather-resistant outdoor fabric, UV resistant, water repellent",bUmbRibs:"Ribs",umbFront:"Front view",umbTop:"Top view",bQty:"Price",perUmb:"per umbrella",dlgTitle:"Save your quote",dlgText:"Your name and phone are printed on the quote, so our team can follow up on the same design.",dlgName:"Full name",dlgPhone:"Mobile number",dlgCancel:"Cancel",errName:"Enter your name.",errPhone:"Enter a mobile number with at least 8 digits.",preparedFor:"Prepared for",quoteNo:"Quote no.",
   ctBoxT:"Book a free site visit",ctBoxP:"Send us your location and a few photos of the space. We will measure, advise on the right system and give you a final price.",ctBoxBtn:"Message us on WhatsApp",
   ftName:"Fonoon Group for Engineering Industries",ftLoc:"6th of October, Cairo",
   waHello:"Hello Fonoon, I would like a quote for:",waContact:"Hello Fonoon, I would like to book a site visit.",
@@ -866,7 +935,7 @@ const T = {
   abP2:"اليوم نصمم ونصنع ونركّب الأسقف الزجاجية وأنظمة الألومنيوم للمنازل والفلل والمطاعم والشركات من مصنعنا في مدينة 6 أكتوبر.",
   t1:"تأسيس شركة الششاني في الأردن في مجال الحديد المشغول.",t2y:"التوسع",t2:"افتتاح قسم الألومنيوم لتصنيع الأبواب والشبابيك.",t3y:"اليوم",t3:"فنون تصنع الأسقف الزجاجية الكهربائية والأنظمة القابلة للطي في مصر.",
   pr1:"عازل للأتربة",pr2:"عازل للمياه",pr3:"عازل للحرارة",pr4:"عازل للضوضاء",
-  ctTitle:"زورنا أو تواصل معنا",ctAddrL:"المصنع",ctAddr:"المنطقة الصناعية، مدينة 6 أكتوبر، القاهرة، مصر",ctPhoneL:"موبايل وواتساب",ctMailL:"البريد الإلكتروني",lUmbType:"الهيكل",lQty:"العدد",lPrint:"طباعة لوجو على 4 أجزاء (+500 جنيه للشمسية)",bPrint:"طباعة اللوجو",discOff:p=>`خصم ${p}%`,discRow:p=>`خصم الكمية ${p}%`,bUmbOnly:"الشمسية بقاعدة 50 × 50 سم",bBaseP:"قاعدة أكبر 60 × 60 سم",bUnit:"سعر الشمسية",bTotal:"الإجمالي",cAnthracite:"أنثراسايت",cSilver:"فضي",cChampagne:"شامبين",cBronze:"برونزي",cCream:"كريمي",cGreen:"أخضر غامق",uCream:"كريمي",uTaupe:"بيج غامق",uTerracotta:"طوبي",uBurgundy:"نبيتي",uOlive:"زيتي",uBottle:"أخضر زجاجي",uNavy:"كحلي",uCharcoal:"فحمي",lUmbBase:"القاعدة",uStony:"زلط",uMarble:"رخام",baseVal:(k,c)=>`${k}، ${c} × ${c} سم`,lUmbFabric:"القماش",uCanvas:"دك",uHdpe:"كلارو",uWaterproof:"أكريليك ووتر بروف",uCanvasD:"قماش دك خارجي مقاوم للأشعة فوق البنفسجية",uHdpeD:"قماش كلارو (HDPE) يسمح بمرور الهواء ومقاوم للأشعة فوق البنفسجية",uWaterproofD:"قماش أكريليك ووتر بروف خارجي مقاوم للماء والأشعة فوق البنفسجية",uWood:"خشب",uAlu:"ألومنيوم",lUmbSize:"المقاس",lUmbShape:"الشكل",uRound:"دائرية",uSquare:"مربعة",lUmbCol:"لون القماش",uSand:"رملي",openUmb:"افتح الشمسية",closeUmb:"اقفل الشمسية",priceAsk:"السعر عند الطلب",priceAskNote:"أرسل لنا اختيارك على واتساب لمعرفة السعر.",bUmbHeight:"الارتفاع الكلي",bUmbBase:"القاعدة",umbBaseVal:"قاعدة مربعة ثقيلة 50 × 50 سم",bUmbCanopy:"القماش",umbCanopyVal:"قماش خارجي مقاوم للعوامل الجوية والأشعة فوق البنفسجية وطارد للماء",bUmbRibs:"الأضلاع",umbFront:"منظر أمامي",umbTop:"منظر علوي",bQty:"السعر",perUmb:"للشمسية",dlgTitle:"احفظ عرض السعر",dlgText:"يُطبع اسمك ورقم موبايلك على عرض السعر، ليتابع فريقنا معك على نفس التصميم.",dlgName:"الاسم بالكامل",dlgPhone:"رقم الموبايل",dlgCancel:"إلغاء",errName:"أدخل اسمك.",errPhone:"أدخل رقم موبايل من 8 أرقام على الأقل.",preparedFor:"مُعد لـ",quoteNo:"رقم العرض",
+  ctTitle:"زورنا أو تواصل معنا",ctAddrL:"المصنع",ctAddr:"المنطقة الصناعية، مدينة 6 أكتوبر، القاهرة، مصر",ctPhoneL:"موبايل وواتساب",ctMailL:"البريد الإلكتروني",lUmbType:"الهيكل",scrollHint:"مرّر لتتجول حولها",sideFront2:"الأمام",sideRight2:"الجانب الأيمن",sideRoof2:"السقف",sideLeft2:"الجانب الأيسر",sFoldT:"نظام فولدينج",sFoldP:"ألواح زجاج 10 مم بدون إطار تنطوي على جانب واحد وتفتح الواجهة بالكامل.",sSlideT:"نظام سحاب",sSlideP:"ألواح زجاج تنزلق فوق بعضها على مجاري ألومنيوم رفيعة.",sRoofT:"برجولة قماش متحركة",sRoofP:"القماش المقاوم للماء ينطوي على المجاري بالريموت، من ظل كامل إلى سماء مفتوحة، وإضاءة LED تعمل في المساء.",sPanoT:"نظام بانوراما",sPanoP:"ثلاثة ألواح زجاج تنزل لأسفل لرؤية مفتوحة وواضحة.",sBuildT:"والآن صمّم برجولتك",sBuildP:"اختر السقف، واختر الزجاج لكل جانب، واعرف السعر فورًا.",storySkip:"انتقل إلى المصمم",lQty:"العدد",openAll:"افتح السقف والزجاج",closeAll:"أغلق السقف والزجاج",miniHint:"اسحب لتتجول حول الطاولة",lPrint:"طباعة لوجو على 4 أجزاء (+500 جنيه للشمسية)",bPrint:"طباعة اللوجو",discOff:p=>`خصم ${p}%`,discRow:p=>`خصم الكمية ${p}%`,bUmbOnly:"الشمسية بقاعدة 50 × 50 سم",bBaseP:"قاعدة أكبر 60 × 60 سم",bUnit:"سعر الشمسية",bTotal:"الإجمالي",cAnthracite:"أنثراسايت",cSilver:"فضي",cChampagne:"شامبين",cBronze:"برونزي",cCream:"كريمي",cGreen:"أخضر غامق",uCream:"كريمي",uTaupe:"بيج غامق",uTerracotta:"طوبي",uBurgundy:"نبيتي",uOlive:"زيتي",uBottle:"أخضر زجاجي",uNavy:"كحلي",uCharcoal:"فحمي",lUmbBase:"القاعدة",uStony:"زلط",uMarble:"رخام",baseVal:(k,c)=>`${k}، ${c} × ${c} سم`,lUmbFabric:"القماش",uCanvas:"دك",uHdpe:"كلارو",uWaterproof:"أكريليك ووتر بروف",uCanvasD:"قماش دك خارجي مقاوم للأشعة فوق البنفسجية",uHdpeD:"قماش كلارو (HDPE) يسمح بمرور الهواء ومقاوم للأشعة فوق البنفسجية",uWaterproofD:"قماش أكريليك ووتر بروف خارجي مقاوم للماء والأشعة فوق البنفسجية",uWood:"خشب",uAlu:"ألومنيوم",lUmbSize:"المقاس",lUmbShape:"الشكل",uRound:"دائرية",uSquare:"مربعة",lUmbCol:"لون القماش",uSand:"رملي",openUmb:"افتح الشمسية",closeUmb:"اقفل الشمسية",priceAsk:"السعر عند الطلب",priceAskNote:"أرسل لنا اختيارك على واتساب لمعرفة السعر.",bUmbHeight:"الارتفاع الكلي",bUmbBase:"القاعدة",umbBaseVal:"قاعدة مربعة ثقيلة 50 × 50 سم",bUmbCanopy:"القماش",umbCanopyVal:"قماش خارجي مقاوم للعوامل الجوية والأشعة فوق البنفسجية وطارد للماء",bUmbRibs:"الأضلاع",umbFront:"منظر أمامي",umbTop:"منظر علوي",bQty:"السعر",perUmb:"للشمسية",dlgTitle:"احفظ عرض السعر",dlgText:"يُطبع اسمك ورقم موبايلك على عرض السعر، ليتابع فريقنا معك على نفس التصميم.",dlgName:"الاسم بالكامل",dlgPhone:"رقم الموبايل",dlgCancel:"إلغاء",errName:"أدخل اسمك.",errPhone:"أدخل رقم موبايل من 8 أرقام على الأقل.",preparedFor:"مُعد لـ",quoteNo:"رقم العرض",
   ctBoxT:"احجز معاينة مجانية",ctBoxP:"أرسل لنا موقعك وبعض الصور للمكان. سنأخذ المقاسات وننصحك بالنظام المناسب ونعطيك السعر النهائي.",ctBoxBtn:"راسلنا على واتساب",
   ftName:"مجموعة فنون للصناعات الهندسية",ftLoc:"مدينة 6 أكتوبر، القاهرة",
   waHello:"مرحبًا فنون، أريد عرض سعر لـ:",waContact:"مرحبًا فنون، أريد حجز معاينة للموقع.",
@@ -1413,6 +1482,7 @@ const c3d = $("c3d");
    Falls back to the simple canvas drawing if WebGL is not available. */
 const GL = (() => {
   let gl = null;
+  if (/[?&]embed=panel/.test(location.search)) return null;   // options-only view inside the homepage: no 3D needed here
   try { gl = c3d.getContext("webgl", {antialias:true, alpha:true, premultipliedAlpha:false, preserveDrawingBuffer:true}); } catch(e){}
   if (!gl) return null;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
@@ -2095,6 +2165,273 @@ function sendLead(lead){
 const stepQty = d => { const el = $("umbQty"); el.value = Math.max(1, Math.min(500, (Math.round(readNum(el)) || 1) + d)); update(); };
 $("qtyMinus").addEventListener("click", () => stepQty(-1));
 $("qtyPlus").addEventListener("click", () => stepQty(1));
+
+
+/* ========================= SCROLL STORY =========================
+   A pergola with a glass system on three sides and a dining table inside.
+   Scrolling tours around it, opens each system, turns day into night, then dives
+   through the open roof onto a tablet on the table, whose screen grows into the
+   pergola builder. */
+(() => {
+  const sc = $("storyCanvas"); if (!sc) return;
+  const gl = sc.getContext("webgl", {antialias:true, alpha:false, preserveDrawingBuffer:true});
+  const shot = $("storyShot");
+  if (!gl){ document.documentElement.classList.add("nostory"); return; }
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, "attribute vec3 p;attribute vec4 c;uniform vec2 k;uniform vec2 zab;varying vec4 vc;void main(){gl_Position=vec4(k.x*p.x,k.y*p.y,zab.x*p.z+zab.y,p.z);vc=c;}"));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, "precision mediump float;varying vec4 vc;void main(){gl_FragColor=vc;}"));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer(), aP = gl.getAttribLocation(prog, "p"), aC = gl.getAttribLocation(prog, "c");
+  const uK = gl.getUniformLocation(prog, "k"), uZ = gl.getUniformLocation(prog, "zab");
+
+  const W0 = 4.4, D0 = 3.8, H0 = 2.5;                         // the pergola: 4.4 × 3.8 m retractable fabric pergola, freestanding
+  const FAB = fabricConfig(W0, D0), TK = fabricGeom(W0, D0, FAB, "free", H0);
+  const MINI = { spec:null, open:0, target:0 };              // the design from the builder, shown on the table
+  const RW = FAB.thick ? .091 : .07, XR = Array.from({length:FAB.rails}, (_, i) => -W0/2 + RW/2 + i*(W0 - RW)/(FAB.rails - 1));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const ss = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t*t*(3 - 2*t); };
+  const mix = (a, b, t) => a + (b - a)*t;
+  const mixC = (a, b, t) => { const A = rgb(a), B = rgb(b); return "#" + [0,1,2].map(i => Math.round(mix(A[i], B[i], t)).toString(16).padStart(2, "0")).join(""); };
+
+  function furniture(B){
+    const add = (c, s, col, o) => B.push({c, s, col, rx:0, ry:(o && o.ry) || 0, a:1, emit:!!(o && o.emit)});
+    add([0,.02,0],[W0-.3,.04,D0-.3],"#B9AE9C");                        // stone floor
+    const wood = "#7A5234", seat = "#D9D2C4", metal = "#2B2E30";
+    add([0,.76,0],[1.8,.045,.95],wood);                                  // table
+    for (const x of [-.8,.8]) for (const z of [-.38,.38]) add([x,.38,z],[.06,.74,.06],metal);
+    const chair = (x, z, ry) => {
+      const r = v => rotY(v, ry), at = (p, s, col) => { const q = r(p); add([x+q[0], q[1], z+q[2]], s, col, {ry}); };
+      at([0,.46,0],[.46,.06,.46],seat); at([0,.78,-.21],[.46,.58,.05],seat);
+      for (const a of [-.19,.19]) for (const b of [-.19,.19]) at([a,.22,b],[.035,.44,.035],metal);
+    };
+    for (const x of [-.55,.55]){ chair(x, .82, Math.PI); chair(x, -.82, 0); }
+    chair(-1.25, 0, Math.PI/2); chair(1.25, 0, -Math.PI/2);
+    add([.72,.80,-.28],[.08,.06,.08],"#EFEDE6"); add([-.72,.80,.26],[.08,.06,.08],"#EFEDE6");   // cups
+    add([-.76,.86,-.26],[.07,.16,.07],"#E9B44C",{emit:true});              // candle lantern
+    // planters at the back corners
+    for (const x of [-W0/2+.45, W0/2-.45]){ add([x,.25,-D0/2+.4],[.45,.5,.45],"#5B686E"); add([x,.75,-D0/2+.4],[.6,.55,.6],"#4E6B4A"); }
+  }
+
+  function scene(t){
+    const night = ss(.40, .50, t), roofOpen = ss(.42, .52, t);
+    const op = { folding: Math.min(1, ss(.13, .22, t) * (1 - ss(.30, .36, t)) + ss(.64, .72, t)), sliding: ss(.27, .36, t) * (1 - ss(.44, .50, t)), panorama: ss(.54, .61, t) };
+    const sp = {key:"fabric", w:W0, d:D0, hf:H0, colour:"anthracite", fabricCol:"beige", wood:false, led: night > .5, rails:FAB.rails, thick:FAB.thick, tk:TK, mount:"free", structure:"aluminium"};
+    const M = buildModel(sp, roofOpen);
+    // glass between the posts: front under the front beam, sides under the side beams
+    const zF = D0/2 - .079, zB = -D0/2 + .079, sideW = (zF - .05) - (zB + .05), xL = XR[0], xR = XR[XR.length - 1];
+    const sides = [
+      {key:"folding",  c:[0, 0, zF], phi:0, w:(xR - .05) - (xL + .05), h:H0 - .125},
+      {key:"sliding",  c:[xL, 0, 0], phi:-Math.PI/2, w:sideW, h:H0 - .225},
+      {key:"panorama", c:[xR, 0, 0], phi: Math.PI/2, w:sideW, h:H0 - .225}
+    ];
+    for (const s of sides){
+      for (const b of buildModel({key:s.key, w:s.w, d:s.h, colour:"anthracite"}, op[s.key]).boxes){
+        const c = rotY(b.c, s.phi); M.boxes.push({...b, c:[c[0] + s.c[0], c[1], c[2] + s.c[2]], ry:(b.ry || 0) + s.phi});
+      }
+    }
+    furniture(M.boxes);
+    // the pergola being designed, as a scale model on the table
+    if (MINI.spec && t > .74){
+      const sp = {...MINI.spec, led: night > .5}, m = storyMiniScene(sp, MINI.open);
+      const big = Math.max(sp.w, sp.d, (sp.hf || 2.5) * 1.2), k = .82 / big, y0 = .785;
+      const grow = ss(.74, .84, t), kk = k * (.2 + .8*grow);
+      for (const b of m.boxes) M.boxes.push({...b, c:[b.c[0]*kk, y0 + b.c[1]*kk, b.c[2]*kk], s:b.s.map(v => v*kk)});
+      if (night > .5) for (const g of (m.glow || [])) (M.glow = M.glow || []).push({...g, pts:g.pts.map(p => [p[0]*kk, y0 + p[1]*kk, p[2]*kk])});
+    }
+    return { M, night };
+  }
+
+  // camera path: [t, angle around, distance, height, target height, zoom]
+  // [t, angle around, distance, height, target height, zoom, sideways shift (share of the width, away from the text)]
+  const KEYS = [
+    [0,    .55, 11.5, 4.2, 1.2, 1,    .2],
+    [.08,  .35, 10.5, 3.6, 1.2, 1,    .16],
+    [.20,  0,    8.6, 2.2, 1.3, 1.05, .14],
+    [.34, -Math.PI/2, 8.2, 2.4, 1.3, 1.05, .14],
+    [.47, -Math.PI,   8.6, 3.0, 1.2, 1,    .14],
+    [.60, -1.5*Math.PI, 8.2, 2.4, 1.3, 1.05, .14],
+    [.72, -2*Math.PI, 6.2, 1.8, 1.0, 1, .1]
+  ];
+  // after the tour: come round to the front, walk in through the open folding glass and sit facing the tablet
+  const ORB = { yaw:0, h:1.6, r:1.95 };                     // the visitor turns this camera around the table
+  const orbitEye = () => [Math.sin(ORB.yaw)*ORB.r, ORB.h, Math.cos(ORB.yaw)*ORB.r];
+  const END_T = [0, .95, 0];
+  function camera(t){
+    let i = 0; while (i < KEYS.length - 2 && t > KEYS[i+1][0]) i++;
+    const A = KEYS[i], B = KEYS[i+1], e = ss(A[0], B[0], t), g = j => mix(A[j], B[j], e);
+    let a = g(1), r = g(2), h = g(3), ty = g(4), z = g(5), shift = g(6);
+    let eye = [Math.sin(a)*r, h, Math.cos(a)*r], tgt = [0, ty, 0];
+    const walk = ss(.72, .86, t);
+    if (walk > 0){
+      const E = orbitEye();
+      eye = [mix(eye[0], E[0], walk), mix(eye[1], E[1], walk), mix(eye[2], E[2], walk)];
+      tgt = [mix(tgt[0], END_T[0], walk), mix(tgt[1], END_T[1], walk), mix(tgt[2], END_T[2], walk)];
+      z = mix(z, 1, walk);
+    }
+    // make room for the options panel at the end (right side, or left in Arabic; bottom on phones)
+    const side = ss(.80, .88, t);
+    let shiftY = 0;
+    if (W < 900){ shift = 0; shiftY = .24 * side; }
+    else { shift = mix(lang === "ar" ? -shift : shift, (lang === "ar" ? 1 : -1) * Math.min(.2, 240 / W), side); return { eye, tgt, zoom:z, shift, shiftY }; }
+    return { eye, tgt, zoom:z, shift: lang === "ar" ? -shift : shift, shiftY };
+  }
+
+  let W = 0, H = 0, F = 1, view = null;
+  function project(p){
+    const v = [p[0]-view.eye[0], p[1]-view.eye[1], p[2]-view.eye[2]];
+    const z = dot(v, view.f);
+    return [dot(v, view.r) + view.shift * W * z / F, dot(v, view.u) + (view.shiftY || 0) * H * z / F, z];
+  }
+  function draw(t){
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = sc.clientWidth; H = sc.clientHeight; if (!W || !H) return;
+    if (sc.width !== Math.round(W*dpr) || sc.height !== Math.round(H*dpr)){ sc.width = Math.round(W*dpr); sc.height = Math.round(H*dpr); }
+    const { M, night } = scene(t), cam = camera(t);
+    const f = nrm([cam.tgt[0]-cam.eye[0], cam.tgt[1]-cam.eye[1], cam.tgt[2]-cam.eye[2]]);
+    const upRef = Math.abs(f[1]) > .98 ? [0,0,-1] : [0,1,0];
+    const r = nrm([f[1]*upRef[2]-f[2]*upRef[1], f[2]*upRef[0]-f[0]*upRef[2], f[0]*upRef[1]-f[1]*upRef[0]]);
+    const u = [r[1]*f[2]-r[2]*f[1], r[2]*f[0]-r[0]*f[2], r[0]*f[1]-r[1]*f[0]];
+    F = Math.min(W, H) * 1.05 * cam.zoom;
+    view = { eye:cam.eye, f, r, u, shift:cam.shift, shiftY:cam.shiftY };
+    const n = .05, far = 80;
+    gl.viewport(0, 0, sc.width, sc.height);
+    const bg = rgb(mixC("#CDD4D7", "#1B2226", night));
+    gl.clearColor(bg[0]/255, bg[1]/255, bg[2]/255, 1); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.uniform2f(uK, 2*F/W, 2*F/H); gl.uniform2f(uZ, (far+n)/(far-n), -2*far*n/(far-n));
+    const opaque = [], trans = [], glow = [], dim = mix(1, .62, night);
+    const vert = (arr, v, c) => arr.push(v[0], v[1], v[2], c[0], c[1], c[2], c[3]);
+    const quad = (arr, ps, c) => { if (ps.some(p => p[2] < n)) return; vert(arr,ps[0],c); vert(arr,ps[1],c); vert(arr,ps[2],c); vert(arr,ps[0],c); vert(arr,ps[2],c); vert(arr,ps[3],c); };
+    const col = (hex, s, a) => { const c = rgb(hex); return [c[0]/255*s, c[1]/255*s, c[2]/255*s, a]; };
+    const G = 18; quad(opaque, [[-G,0,-G],[G,0,-G],[G,0,G],[-G,0,G]].map(project), col(mixC("#B7C0C3", "#262F34", night), 1, 1));
+    const through = false;
+    for (const b of M.boxes){
+      if (through && b.c[1] > H0 - .3) continue;
+      const hs = b.s.map(v => v/2), pts = [];
+      for (let k = 0; k < 8; k++){ let v = [(k&1?1:-1)*hs[0], (k&2?1:-1)*hs[1], (k&4?1:-1)*hs[2]]; v = rotX(v, b.rx || 0); v = rotY(v, b.ry || 0); pts.push([v[0]+b.c[0], v[1]+b.c[1], v[2]+b.c[2]]); }
+      const cp = pts.map(project);
+      for (const q of QUADS){
+        const fc = [0,1,2].map(i => (pts[q[0]][i]+pts[q[1]][i]+pts[q[2]][i]+pts[q[3]][i])/4);
+        const nn = nrm([fc[0]-b.c[0], fc[1]-b.c[1], fc[2]-b.c[2]]);
+        const s = b.emit ? 1 : (.45 + .55*Math.max(0, dot(nn, LIGHT))) * dim;
+        quad(b.a < 1 ? trans : opaque, q.map(i => cp[i]), col(b.col, s, b.a));
+      }
+    }
+    if (night > .5 && !through) for (const g of (M.glow || [])){
+      const ps = g.pts.map(project); if (ps.some(p => p[2] < n)) continue;
+      const c = I => [I*g.k, .82*I*g.k, .45*I*g.k, 1];
+      for (const i of [0,1,2,0,2,3]) vert(glow, ps[i], c(g.I[i] * (night - .5) * 2));
+    }
+    const put = (arr) => {
+      if (!arr.length) return;
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.DYNAMIC_DRAW);
+      gl.enableVertexAttribArray(aP); gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 28, 0);
+      gl.enableVertexAttribArray(aC); gl.vertexAttribPointer(aC, 4, gl.FLOAT, false, 28, 12);
+      gl.drawArrays(gl.TRIANGLES, 0, arr.length/7);
+    };
+    gl.disable(gl.BLEND); gl.depthMask(true); put(opaque);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); put(trans);
+    gl.blendFunc(gl.ONE, gl.ONE); put(glow); gl.depthMask(true);
+    $("story").classList.toggle("night", night > .5);
+  }
+
+function storyMiniScene(sp, open){
+  const M = buildModel(sp, open);
+  for (const o of sp.ops || []){
+    const put = (b) => { const c = rotY(b.c, o.phi); M.boxes.push({...b, c:[c[0] + o.c[0], c[1], c[2] + o.c[2]], ry:(b.ry||0) + o.phi}); };
+    if (o.sys){
+      const n = o.parts || 1, pw = o.pw || o.w, pt = o.pt || 0, frame = ALU_COLOURS[sp.colour] || "#8C989D";
+      const parts = buildModel({key:o.sys, w:pw, d:o.h, colour:sp.colour}, open).boxes;
+      for (let k = 0; k < n; k++){
+        const lx = -o.w/2 + pw/2 + k*(pw + pt);
+        for (const b of parts) put({...b, c:[b.c[0] + lx, b.c[1], b.c[2]]});
+        if (k < n-1) put({c:[-o.w/2 + (k+1)*pw + k*pt + pt/2, o.h/2, 0], s:[pt, o.h, pt], col:frame, rx:0, ry:0, a:1, emit:false});   // added pillar
+      }
+    }
+    if (sp.sel === o.id){   // outline the opening that is being edited
+      const th = .04, W = o.w, h = o.h;
+      [[[0,h-th/2,0],[W,th,th]], [[0,th/2,0],[W,th,th]], [[-W/2+th/2,h/2,0],[th,h,th]], [[W/2-th/2,h/2,0],[th,h,th]]]
+        .forEach(([c, s]) => put({c, s, col:"#E9B44C", rx:0, ry:0, a:1, emit:true}));
+    }
+  }
+  // side triangles: thin vertical strips that follow the sloped roof down to the side beam
+  if (sp.tris && sp.tris.length){
+    const tk = sp.tk, d = sp.d, Hf = tk.hf, rise = tk.rise, Yr = Hf + rise, beamTop = Hf - .125, n = 24;
+    const z0 = sp.mount === "free" ? -d/2 + .13 : -d/2, z1 = d/2 - .13, dz = (z1 - z0) / n;
+    const fab = FABRIC_COLOURS[sp.fabricCol] || "#F1EFEA";
+    for (const q of sp.tris) if (q.c){
+      for (let i = 0; i < n; i++){
+        const z = z0 + dz*(i + .5), top = Yr - .15 - (z + d/2) * rise / d, h = top - beamTop;
+        if (h <= .01) continue;
+        M.boxes.push({c:[q.x, beamTop + h/2, z], s:[.012, h, dz + .002], col: q.c === "glass" ? "#BFDCE0" : fab, rx:0, ry:0, a: q.c === "glass" ? .32 : 1, emit:false});
+      }
+    }
+  }
+  return M;
+}
+
+  const story = $("story"), pin = $("storyPin"), frame = $("storyFrame"), caps = [...document.querySelectorAll(".scap")];
+  let want = 0, cur = 0, raf = 0, frameLoaded = false;
+  const progress = () => { const r = story.getBoundingClientRect(), total = story.offsetHeight - pin.offsetHeight; return clamp(-r.top / total, 0, 1); };
+  // the builder's options slide in beside the table; the model on the table follows every change
+  function frameUpdate(t){
+    if (t > .45 && !frameLoaded){ frame.src = frame.dataset.src; frameLoaded = true; }
+    const on = ss(.80, .88, t), live = t >= .88;
+    frame.style.opacity = Math.min(on, .999);   // keeps the panel on its own layer, so the 3D view behind it always shows
+    frame.style.transform = W < 900 ? `translateY(${(1 - on) * 40}px)` : `translateX(${(1 - on) * (lang === "ar" ? -40 : 40)}px)`;
+    frame.style.pointerEvents = live ? "auto" : "none";
+    story.classList.toggle("live", live); story.classList.toggle("ending", t > .78);
+    document.documentElement.classList.toggle("story-live", live);
+  }
+  function caption(t){
+    caps.forEach(c => { const a = +c.dataset.a, b = +c.dataset.b, v = ss(a - .03, a, t) * (1 - ss(b, b + .03, t)); c.style.opacity = v; c.style.transform = `translateY(${(1 - v) * 18}px)`; c.style.visibility = v > .01 ? "visible" : "hidden"; });
+    $("storyBar").style.transform = `scaleX(${t})`;
+  }
+  function frameLoop(){
+    raf = 0;
+    cur += (want - cur) * (reduceMotion ? 1 : .16);
+    if (Math.abs(want - cur) < .0004) cur = want;
+    draw(cur); frameUpdate(cur); caption(cur);
+    if (cur !== want || drag) raf = requestAnimationFrame(frameLoop);
+  }
+  const kick = () => { want = progress(); if (!raf) raf = requestAnimationFrame(frameLoop); };
+  const redraw = () => { if (!raf) raf = requestAnimationFrame(frameLoop); };
+  addEventListener("message", e => {
+    if (e.source !== frame.contentWindow || !e.data || e.data.type !== "fonoonSpec") return;
+    MINI.spec = e.data.spec; redraw();
+  });
+  // drag to walk the camera around the table (the model stays where it is)
+  let drag = null;
+  sc.addEventListener("pointerdown", e => { if (!story.classList.contains("live")) return; drag = [e.clientX, e.clientY, ORB.yaw, ORB.h]; sc.setPointerCapture(e.pointerId); });
+  sc.addEventListener("pointermove", e => {
+    if (!drag) return;
+    ORB.yaw = drag[2] - (e.clientX - drag[0]) * .006;
+    ORB.h = clamp(drag[3] + (e.clientY - drag[1]) * .004, 1.05, 2.4);
+    redraw();
+  });
+  const end = () => { drag = null; };
+  sc.addEventListener("pointerup", end); sc.addEventListener("pointercancel", end);
+  $("miniOpen").addEventListener("click", () => {
+    MINI.target = MINI.target ? 0 : 1; $("miniOpen").textContent = T[lang][MINI.target ? "closeAll" : "openAll"];
+    const step = () => { MINI.open += (MINI.target - MINI.open) * .15; if (Math.abs(MINI.target - MINI.open) < .002) MINI.open = MINI.target; redraw(); if (MINI.open !== MINI.target) requestAnimationFrame(step); };
+    step();
+  });
+  addEventListener("scroll", kick, {passive:true});
+  addEventListener("resize", () => { cur = want - .001; kick(); });
+  $("storySkip").addEventListener("click", e => { e.preventDefault(); scrollTo({top: story.offsetTop + story.offsetHeight - pin.offsetHeight, behavior: reduceMotion ? "auto" : "smooth"}); });
+  kick();
+})();
+
+/* gentle reveals for the rest of the page */
+(() => {
+  document.querySelectorAll(".block .head, #productList > *, .about .text, .about .timeline, .about .promise, .contact .wrap > *").forEach((e, i) => { e.classList.add("reveal"); });
+  document.querySelectorAll("#productList > *").forEach((e, i) => { e.style.transitionDelay = `${(i % 3) * 90}ms`; });
+  const els = document.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window) || reduceMotion){ els.forEach(e => e.classList.add("in")); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -10% 0px"});
+  els.forEach(e => io.observe(e));
+})();
 
 /* ========================= INIT ========================= */
 $("heroArt").innerHTML = drawRoof(5, 4, "smartroof", {dark:false, hideDims:true, animate:true, sun:true});
