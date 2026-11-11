@@ -208,8 +208,8 @@
   .story-pin{position:sticky;top:68px;height:calc(100vh - 68px);overflow:hidden;background:#CDD4D7}
   #storyCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   /* soft wash behind the words so they stay readable over the scene */
-  .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(230,234,235,.82) 0%,rgba(230,234,235,.55) 30%,rgba(230,234,235,0) 52%);transition:opacity .4s}
-  [dir=rtl] .scrim{background:linear-gradient(270deg,rgba(230,234,235,.82) 0%,rgba(230,234,235,.55) 30%,rgba(230,234,235,0) 52%)}
+  .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(244,234,222,.82) 0%,rgba(244,234,222,.55) 30%,rgba(244,234,222,0) 52%);transition:opacity .4s}
+  [dir=rtl] .scrim{background:linear-gradient(270deg,rgba(244,234,222,.82) 0%,rgba(244,234,222,.55) 30%,rgba(244,234,222,0) 52%)}
   .story.night .scrim{background:linear-gradient(90deg,rgba(12,18,24,.78) 0%,rgba(12,18,24,.5) 30%,rgba(12,18,24,0) 52%)}
   [dir=rtl] .story.night .scrim{background:linear-gradient(270deg,rgba(12,18,24,.78) 0%,rgba(12,18,24,.5) 30%,rgba(12,18,24,0) 52%)}
   .story.ending .scrim{opacity:0}
@@ -255,7 +255,7 @@
   .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
   .reveal.in{opacity:1;transform:none}
   @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none}.scroll-hint::after{animation:none}}
-  @media (max-width:900px){.scrim,[dir=rtl] .scrim{background:linear-gradient(0deg,rgba(230,234,235,.9) 0%,rgba(230,234,235,.6) 28%,rgba(230,234,235,0) 48%)}.story.night .scrim,[dir=rtl] .story.night .scrim{background:linear-gradient(0deg,rgba(12,18,24,.85) 0%,rgba(12,18,24,.55) 28%,rgba(12,18,24,0) 48%)}.scap-hero~.scrim{}}
+  @media (max-width:900px){.scrim,[dir=rtl] .scrim{background:linear-gradient(0deg,rgba(244,234,222,.9) 0%,rgba(244,234,222,.6) 28%,rgba(244,234,222,0) 48%)}.story.night .scrim,[dir=rtl] .story.night .scrim{background:linear-gradient(0deg,rgba(12,18,24,.85) 0%,rgba(12,18,24,.55) 28%,rgba(12,18,24,0) 48%)}.scap-hero~.scrim{}}
   @media (max-width:900px){.story{height:640vh}.scap{inset-inline:20px;bottom:9%;max-width:none}.scap-hero{top:6%}.scap p{font-size:16px}.scap h2{font-size:28px}}
   /* printable quote (Save as PDF) */
   #quote{display:none}
@@ -2266,6 +2266,38 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
   const SHADOWS = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   const sBuf = gl.createBuffer(), dBuf = gl.createBuffer(), tBuf = gl.createBuffer();
+  /* ---- the sky: gradient, sun, clouds and stars, worked out for every pixel ---- */
+  const PK = gl.createProgram();
+  gl.attachShader(PK, sh(gl.VERTEX_SHADER, "attribute vec2 q;varying vec2 v;void main(){v=q;gl_Position=vec4(q,0.9999,1.0);}"));
+  gl.attachShader(PK, sh(gl.FRAGMENT_SHADER, `precision ${hp} float;varying vec2 v;
+    uniform vec3 cr,cu,cf,sunD,zen,hor,band,glow,cloudL,cloudD;uniform vec2 sc2,sh;uniform float stars,sunVis,drift,cloudK;
+    float hash(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
+    float noise(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+    float fbm(vec2 q){float a=0.5,s=0.0;for(int i=0;i<6;i++){s+=a*noise(q);q=q*2.03+vec2(17.1,9.3);a*=0.5;}return s;}
+    void main(){
+      vec3 d=normalize(cf+(v.x*sc2.x-sh.x)*cr+(v.y*sc2.y-sh.y)*cu);
+      float e=d.y,up=clamp(e,0.0,1.0);
+      vec3 col=mix(hor,zen,pow(up,0.55));
+      col=mix(col,band,exp(-max(e,0.0)*9.0)*0.85);
+      float sd=max(dot(d,sunD),0.0);
+      col+=glow*(pow(sd,6.0)*0.35+pow(sd,60.0)*0.6)*sunVis;
+      col=mix(col,vec3(1.0,0.96,0.86),smoothstep(0.9993,0.9996,sd)*sunVis);
+      if(e>0.0){
+        vec2 uv=d.xz/(e+0.08)*0.55+vec2(drift,drift*0.3);
+        float c=fbm(uv*1.1);c=smoothstep(0.42,0.68,c)*clamp(e*9.0,0.0,1.0)*cloudK;
+        float lit=pow(max(dot(normalize(vec3(d.x,0.15,d.z)),normalize(vec3(sunD.x,0.15,sunD.z))),0.0),3.0);
+        vec3 cc=mix(cloudD,cloudL,clamp(0.3+0.6*lit*sunVis+0.45*(fbm(uv*2.2+3.0)-0.4),0.0,1.0));
+        col=mix(col,cc,c*0.92);
+        vec2 sp2=d.xz/(e+0.3)*150.0,g=floor(sp2);float h=hash(g);
+        vec2 o=fract(sp2)-0.5-0.3*(vec2(hash(g+3.1),hash(g+5.7))-0.5);
+        float st=step(0.985,h)*smoothstep(0.22,0.0,length(o))*(0.6+0.8*hash(g+7.0))*clamp(e*6.0,0.0,1.0)*(1.0-c);
+        col+=vec3(st)*stars;
+      }
+      gl_FragColor=vec4(col,1.0);}`));
+  gl.linkProgram(PK);
+  const UK = {}; for (const nm of ["cr","cu","cf","sunD","zen","hor","band","glow","cloudL","cloudD","sc2","sh","stars","sunVis","drift","cloudK"]) UK[nm] = gl.getUniformLocation(PK, nm);
+  const kQ = gl.getAttribLocation(PK, "q"), kBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, kBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
   let staticCount = 0;
 
   const W0 = 4.4, D0 = 3.8, H0 = 2.5;                         // the pergola: 4.4 × 3.8 m retractable fabric pergola, freestanding
@@ -2389,9 +2421,10 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
   }
 
   function scene(t){
-    const night = ss(.56, .64, t), roofOpen = ss(.62, .70, t);
+    // day → sunset while the camera rises and the roof opens → night as it walks in to the table
+    const sunset = ss(.54, .66, t), night = ss(.74, .86, t), roofOpen = ss(.62, .70, t);
     const op = { sliding: ss(.12, .20, t), panorama: ss(.26, .34, t), folding: ss(.40, .48, t) };   // each opens in turn and stays open
-    const sp = {key:"fabric", w:W0, d:D0, hf:H0, colour:"anthracite", fabricCol:"beige", wood:false, led: night > .5, rails:FAB.rails, thick:FAB.thick, tk:TK, mount:"free", structure:"aluminium"};
+    const sp = {key:"fabric", w:W0, d:D0, hf:H0, colour:"anthracite", fabricCol:"beige", wood:false, led: true, rails:FAB.rails, thick:FAB.thick, tk:TK, mount:"free", structure:"aluminium"};
     const M = buildModel(sp, roofOpen);
     // side triangles under the sloped roof, closed with one sheet of glass each
     { const Hf = TK.hf, Yr = Hf + TK.rise, beamTop = Hf - .125, z0 = -D0/2 + .13, z1 = D0/2 - .13, topAt = z => Yr - .15 - (z + D0/2) * TK.rise / D0;
@@ -2412,14 +2445,14 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     furniture(M.boxes, ss(.76, .84, t));
     // the pergola being designed, as a scale model on the table
     if (MINI.spec && t > .74){
-      const sp = {...MINI.spec, led: night > .5}, m = storyMiniScene(sp, MINI.open);
+      const sp = {...MINI.spec, led: true}, m = storyMiniScene(sp, MINI.open);
       const big = Math.max(sp.w, sp.d, (sp.hf || 2.5) * 1.2), k = .82 / big, y0 = .785;
       const grow = ss(.74, .84, t), kk = k * (.2 + .8*grow);
       // the builder's own view has its x axis the other way round, so mirror the model to keep its right side on the right
       for (const b of m.boxes) M.boxes.push({...b, c:[-b.c[0]*kk, y0 + b.c[1]*kk, b.c[2]*kk], s:b.s.map(v => v*kk), ry:-(b.ry || 0)});
-      if (night > .5) for (const g of (m.glow || [])) (M.glow = M.glow || []).push({...g, pts:g.pts.map(p => [-p[0]*kk, y0 + p[1]*kk, p[2]*kk])});
+      for (const g of (m.glow || [])) (M.glow = M.glow || []).push({...g, pts:g.pts.map(p => [-p[0]*kk, y0 + p[1]*kk, p[2]*kk])});
     }
-    return { M, night, roofOpen };
+    return { M, night, sunset, roofOpen };
   }
 
   // camera path: [t, angle around, distance, height, target height, zoom]
@@ -2431,7 +2464,7 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     [.30,  0,         6.8, 1.8, 1.25, 1.05, .14],    // panorama (front)
     [.44, -Math.PI/2, 6.6, 1.8, 1.25, 1.05, .14],    // folding (left side)
     [.58,  0,         6.4, 6.2, .9, 1, .1],           // lift up: from the front, looking down on the roof
-    [.72,  0,         6.0, 5.6, .9, 1, .08]           // the fabric folds back
+    [.72,  0,         6.6, 2.3, 2.1, 1, .08]           // the fabric folds back; the camera drops to see the sunset behind
   ];
   // after the tour: come round to the front, walk in through the open folding glass and sit facing the tablet
   const ORB = { yaw:0, h:1.6, r:1.95 };                     // the visitor turns this camera around the table
@@ -2463,9 +2496,16 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     const z = dot(v, view.f);
     return [dot(v, view.r) + view.shift * W * z / F, dot(v, view.u) + (view.shiftY || 0) * H * z / F, z];
   }
-  // colours of the light, day and night (linear light)
-  const SKY_D = [.95, 1.0, 1.08], GND_D = [.42, .38, .32], SUN_D = [1.0, .9, .74];
-  const SKY_N = [.07, .09, .14], GND_N = [.03, .03, .04], SUN_N = [.06, .08, .13];
+  // light for day, sunset and night: [day, sunset, night]
+  const PH = {
+    sky:  [[1.0, .92, .84], [.85, .62, .58], [.09, .11, .19]],
+    gnd:  [[.5, .38, .26], [.42, .3, .22], [.03, .03, .045]],
+    sun:  [[1.0, .78, .52], [1.0, .5, .2], [0, 0, 0]],
+    zen:  ["#7EA2C4", "#4F6A9E", "#0A1328"], hor: ["#F2D9BC", "#F6A866", "#273256"],
+    band: ["#F5C996", "#F07A3E", "#3E3558"], glow: ["#FFD08C", "#FFB060", "#000000"],
+    cloudL: ["#FFF0DA", "#FFC58E", "#2A3150"], cloudD: ["#D8C2B4", "#9A6C78", "#151A2C"]
+  };
+  const SUN_DAY = nrm([.42, .72, -.3]), SUN_SET = nrm([.3, .15, -1]), SUN_DOWN = nrm([.32, -.09, -1]);
   const LANTERN = [-.76, .9, -.26];
   // geometry → vertex list: position, normal, colour, (kind, shine)
   const lin = h => rgb(h).map(v => v/255);
@@ -2495,14 +2535,18 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     gl.enableVertexAttribArray(A.m); gl.vertexAttribPointer(A.m, 2, gl.FLOAT, false, 48, 40);
   }
   // sun "camera" for the shadows
-  const SX = nrm([-LIGHT[2], 0, LIGHT[0]]), SY = [LIGHT[1]*SX[2]-LIGHT[2]*SX[1], LIGHT[2]*SX[0]-LIGHT[0]*SX[2], LIGHT[0]*SX[1]-LIGHT[1]*SX[0]];
   const S_S = 6.5, S_D = 20;
   function draw(t){
     if (!HQ) return;
     const dpr = Math.min(2, Math.max(1.5, window.devicePixelRatio || 1));   // at least 1.5× for smooth edges
     W = sc.clientWidth; H = sc.clientHeight; if (!W || !H) return;
     if (sc.width !== Math.round(W*dpr) || sc.height !== Math.round(H*dpr)){ sc.width = Math.round(W*dpr); sc.height = Math.round(H*dpr); }
-    const { M, night, roofOpen } = scene(t), cam = camera(t);
+    const { M, night, sunset, roofOpen } = scene(t), cam = camera(t);
+    const ph3 = (arr) => { const a = arr[0], b = arr[1], c = arr[2]; return [0,1,2].map(i => mix(mix(a[i], b[i], sunset), c[i], night)); };
+    const phC = (arr) => mixC(mixC(arr[0], arr[1], sunset), arr[2], night);
+    const SUNV = nrm([0,1,2].map(i => mix(mix(SUN_DAY[i], SUN_SET[i], sunset), SUN_DOWN[i], night)));
+    const sunUp = ss(-.02, .08, SUNV[1]);                       // fades as the sun sinks below the horizon
+    const SX = nrm([-SUNV[2], 0, SUNV[0]]), SY = [SUNV[1]*SX[2]-SUNV[2]*SX[1], SUNV[2]*SX[0]-SUNV[0]*SX[2], SUNV[0]*SX[1]-SUNV[1]*SX[0]];
     const f = nrm([cam.tgt[0]-cam.eye[0], cam.tgt[1]-cam.eye[1], cam.tgt[2]-cam.eye[2]]);
     const upRef = Math.abs(f[1]) > .98 ? [0,0,-1] : [0,1,0];
     const r = nrm([f[1]*upRef[2]-f[2]*upRef[1], f[2]*upRef[0]-f[0]*upRef[2], f[0]*upRef[1]-f[1]*upRef[0]]);
@@ -2510,7 +2554,7 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     F = Math.min(W, H) * 1.05 * cam.zoom;
     view = { eye:cam.eye, f, r, u, shift:cam.shift, shiftY:cam.shiftY };
     const n = .05, far = 120;
-    const top = mixC("#9DB4C2", "#0A111B", night), hor = mixC("#DDE3E3", "#1E2830", night);
+    const top = phC(PH.zen), hor = phC(PH.hor);
     pin.style.background = `linear-gradient(180deg, ${top} 0%, ${hor} 62%, ${hor} 100%)`;
 
     // geometry
@@ -2525,32 +2569,43 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     gl.bindBuffer(gl.ARRAY_BUFFER, tBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tr), gl.DYNAMIC_DRAW);
 
     // 1. shadows from the sun (daytime)
-    const shOn = SHADOWS && night < .95;
+    const shOn = SHADOWS && sunUp > .05;
     if (shOn){
       gl.useProgram(PS); gl.bindFramebuffer(gl.FRAMEBUFFER, smFb); gl.viewport(0, 0, SM, SM);
       gl.clearColor(1, 1, 1, 1); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.disable(gl.BLEND); gl.depthMask(true);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.uniform3fv(US.sx, SX); gl.uniform3fv(US.sy, SY); gl.uniform3fv(US.sunD, LIGHT); gl.uniform1f(US.sS, S_S); gl.uniform1f(US.sD, S_D);
+      gl.uniform3fv(US.sx, SX); gl.uniform3fv(US.sy, SY); gl.uniform3fv(US.sunD, SUNV); gl.uniform1f(US.sS, S_S); gl.uniform1f(US.sD, S_D);
       for (const [buf, cnt] of [[sBuf, staticCount], [dBuf, op.length/12]]){ if (!cnt) continue;
         gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.enableVertexAttribArray(US.p); gl.vertexAttribPointer(US.p, 3, gl.FLOAT, false, 48, 0); gl.drawArrays(gl.TRIANGLES, 0, cnt); }
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    // 2. the scene
-    gl.useProgram(P2);
+    // 2. the sky
     gl.viewport(0, 0, sc.width, sc.height);
-    gl.clearColor(0, 0, 0, 0); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(PK); gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+    gl.uniform3fv(UK.cr, r); gl.uniform3fv(UK.cu, u); gl.uniform3fv(UK.cf, f); gl.uniform3fv(UK.sunD, SUNV);
+    for (const k2 of ["zen","hor","band","glow","cloudL","cloudD"]) gl.uniform3fv(UK[k2], lin(phC(PH[k2])));
+    gl.uniform2f(UK.sc2, W/(2*F), H/(2*F)); gl.uniform2f(UK.sh, cam.shift || 0, cam.shiftY || 0);
+    gl.uniform1f(UK.stars, night); gl.uniform1f(UK.sunVis, sunUp); gl.uniform1f(UK.drift, t * 1.6); gl.uniform1f(UK.cloudK, mix(1, .55, night));
+    gl.bindBuffer(gl.ARRAY_BUFFER, kBuf); gl.enableVertexAttribArray(kQ); gl.vertexAttribPointer(kQ, 2, gl.FLOAT, false, 8, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3); gl.disableVertexAttribArray(kQ);
+
+    // 3. the scene
+    gl.useProgram(P2);
+    gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
     const m3 = (a, b, k) => [mix(a[0], b[0], k), mix(a[1], b[1], k), mix(a[2], b[2], k)];
     gl.uniform3fv(U.eye, cam.eye); gl.uniform3fv(U.cr, r); gl.uniform3fv(U.cu, u); gl.uniform3fv(U.cf, f);
     gl.uniform2f(U.k, 2*F/W, 2*F/H); gl.uniform2f(U.zab, (far+n)/(far-n), -2*far*n/(far-n));
     gl.uniform2f(U.sh, (cam.shift || 0) * W / F, (cam.shiftY || 0) * H / F);
-    gl.uniform3fv(U.sunD, LIGHT); gl.uniform3fv(U.sunC, m3(SUN_D, SUN_N, night)); gl.uniform3fv(U.skyC, m3(SKY_D, SKY_N, night)); gl.uniform3fv(U.gndC, m3(GND_D, GND_N, night));
+    const sunC = ph3(PH.sun).map(v => v * sunUp);
+    gl.uniform3fv(U.sunD, SUNV); gl.uniform3fv(U.sunC, sunC); gl.uniform3fv(U.skyC, ph3(PH.sky)); gl.uniform3fv(U.gndC, ph3(PH.gnd));
     const hc = lin(hor), tc = lin(top); gl.uniform3fv(U.fogC, hc); gl.uniform3f(U.fogR, 18, 70, .55);
     gl.uniform3fv(U.refl, [Math.pow(tc[0], 2.2)*1.2, Math.pow(tc[1], 2.2)*1.2, Math.pow(tc[2], 2.2)*1.25]);
-    gl.uniform1f(U.ambK, mix(.55, .9, night)); gl.uniform1f(U.sunK, mix(1.35, .9, night)); gl.uniform1f(U.expo, mix(1.05, 1.25, night)); gl.uniform1f(U.shOn, shOn ? 1 : 0);
-    const lamps = Math.max(0, night - .5) * 2, LP = new Float32Array(NL*3), LC = new Float32Array(NL*3), LA = new Float32Array(NL);
-    if (lamps > 0){
+    gl.uniform1f(U.ambK, mix(mix(.55, .6, sunset), .9, night)); gl.uniform1f(U.sunK, mix(1.35, 1.7, sunset)); gl.uniform1f(U.expo, mix(mix(1.05, 1.1, sunset), 1.25, night)); gl.uniform1f(U.shOn, shOn ? 1 : 0);
+    // the pergola's LED lights are always on; they just show more as the light fades
+    const lamps = mix(mix(.35, .75, sunset), 1, night), rays = Math.max(sunset * .35, night), LP = new Float32Array(NL*3), LC = new Float32Array(NL*3), LA = new Float32Array(NL);
+    {
       let k = 0;
       for (const x of XR) for (const z of [-1.15, 0, 1.15]){ if (k >= NL - 1) break; LP.set([x, H0 - .14, z], k*3); LC.set([1*.7*lamps, .62*.7*lamps, .3*.7*lamps], k*3); LA[k] = 1.6; k++; }
       LP.set(LANTERN, k*3); LC.set([1*.9*lamps, .5*.9*lamps, .18*.9*lamps], k*3); LA[k] = 7;
@@ -2568,13 +2623,13 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     for (const k2 of ["p","nr","c","m"]) gl.disableVertexAttribArray(A[k2]);
 
     // 3. light beams from the LED strips (added on top)
-    if (night > .5 && M.glow && M.glow.length){
+    if (rays > .02 && M.glow && M.glow.length){
       gl.useProgram(prog);
       gl.uniform2f(uK, 2*F/W, 2*F/H); gl.uniform2f(uZ, (far+n)/(far-n), -2*far*n/(far-n)); gl.uniform3f(uFR, 9, 34, 0); gl.uniform3f(uFC, 0, 0, 0);
       const glow = [], vert = (v, c) => glow.push(v[0], v[1], v[2], c[0], c[1], c[2], c[3]);
       for (const g of M.glow){ const ps = g.pts.map(project); if (ps.some(p => p[2] < n)) continue;
         const c = I => [I*g.k*.75, .66*I*g.k*.75, .3*I*g.k*.75, 1];
-        for (const i of [0,1,2,0,2,3]) vert(ps[i], c(g.I[i] * (night - .5) * 2)); }
+        for (const i of [0,1,2,0,2,3]) vert(ps[i], c(g.I[i] * rays)); }
       gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(glow), gl.DYNAMIC_DRAW);
       gl.enableVertexAttribArray(aP); gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 28, 0);
       gl.enableVertexAttribArray(aC); gl.vertexAttribPointer(aC, 4, gl.FLOAT, false, 28, 12);
@@ -2583,7 +2638,7 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
       gl.disableVertexAttribArray(aP); gl.disableVertexAttribArray(aC);
     }
     gl.depthMask(true);
-    $("story").classList.toggle("night", night > .5);
+    $("story").classList.toggle("night", sunset > .5);
   }
 
 
