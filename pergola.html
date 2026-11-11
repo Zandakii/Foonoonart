@@ -207,6 +207,14 @@
   .story{position:relative;height:760vh}
   .story-pin{position:sticky;top:68px;height:calc(100vh - 68px);overflow:hidden;background:#CDD4D7}
   #storyCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  /* soft wash behind the words so they stay readable over the scene */
+  .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(230,234,235,.82) 0%,rgba(230,234,235,.55) 30%,rgba(230,234,235,0) 52%);transition:opacity .4s}
+  [dir=rtl] .scrim{background:linear-gradient(270deg,rgba(230,234,235,.82) 0%,rgba(230,234,235,.55) 30%,rgba(230,234,235,0) 52%)}
+  .story.night .scrim{background:linear-gradient(90deg,rgba(12,18,24,.78) 0%,rgba(12,18,24,.5) 30%,rgba(12,18,24,0) 52%)}
+  [dir=rtl] .story.night .scrim{background:linear-gradient(270deg,rgba(12,18,24,.78) 0%,rgba(12,18,24,.5) 30%,rgba(12,18,24,0) 52%)}
+  .story.ending .scrim{opacity:0}
+  .scap{z-index:2}
+  .scrim + #storyCanvas{z-index:0}
   .scap{position:absolute;inset-inline-start:max(32px,calc((100vw - 1240px)/2 + 24px));bottom:12%;max-width:430px;opacity:0;visibility:hidden;will-change:opacity,transform;pointer-events:none}
   .scap h2{font-size:clamp(30px,3.6vw,46px);font-weight:600;letter-spacing:-.02em;line-height:1.1}
   .scap p{font-size:18px;color:var(--steel);margin-top:12px;max-width:26em}
@@ -247,6 +255,7 @@
   .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
   .reveal.in{opacity:1;transform:none}
   @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none}.scroll-hint::after{animation:none}}
+  @media (max-width:900px){.scrim,[dir=rtl] .scrim{background:linear-gradient(0deg,rgba(230,234,235,.9) 0%,rgba(230,234,235,.6) 28%,rgba(230,234,235,0) 48%)}.story.night .scrim,[dir=rtl] .story.night .scrim{background:linear-gradient(0deg,rgba(12,18,24,.85) 0%,rgba(12,18,24,.55) 28%,rgba(12,18,24,0) 48%)}.scap-hero~.scrim{}}
   @media (max-width:900px){.story{height:640vh}.scap{inset-inline:20px;bottom:9%;max-width:none}.scap-hero{top:6%}.scap p{font-size:16px}.scap h2{font-size:28px}}
   /* printable quote (Save as PDF) */
   #quote{display:none}
@@ -1168,7 +1177,7 @@ function buildModel(sp, open){
     add([0,h-F.track/2,0],[w,F.track,.07],frame);          // top track
     add([0,F.track/4,0],[w,F.track/2,.07],frame);           // bottom track
     add([-w/2+.01,h/2,0],[.02,h,.07],frame); add([w/2-.01,h/2,0],[.02,h,.07],frame);   // slim side frames
-    const th = open*Math.PI/2, ph = h - F.track*1.5 - .01, yc = F.track/2 + .005 + ph/2;
+    const th = open*Math.PI/2, ph = h - F.track/2 - .006, yc = F.track/2 + .003 + ph/2;   // panels run right up to the top, so no gap shows above a folded stack
     for (let i=0;i<n;i++){
       let c, ry;
       if (i < G.nL){            // left group: pivots on its left edge and stacks at the left end
@@ -1192,20 +1201,20 @@ function buildModel(sp, open){
     B.length = 0;
     add([0,h-S.top.h/2,0],[w,S.top.h,S.top.w],frame);
     add([0,S.bottom.h/2,0],[w,S.bottom.h,S.bottom.w],frame);
-    add([-w/2+S.side.w/2,h/2,0],[S.side.w,h,S.side.d],frame); add([w/2-S.side.w/2,h/2,0],[S.side.w,h,S.side.d],frame);
+    add([-w/2+S.side.w/2,h/2,0],[S.side.w,h,Math.max(S.side.d, S.top.w)],frame); add([w/2-S.side.w/2,h/2,0],[S.side.w,h,Math.max(S.side.d, S.top.w)],frame);   // jambs as deep as the tracks: no gap at the ends
     // 5 panels on 5 tracks; over 6 m wide, 10 panels: 5 stack to the left, 5 to the right
-    const iw = w - 2*S.side.w, pw = iw/n, ph = h - S.top.h - S.bottom.h - .01, y0 = S.bottom.h + .005, xl = -iw/2;
+    const iw = w - 2*S.side.w, pw = iw/n, ph = h - S.top.h - S.bottom.h + .004, y0 = S.bottom.h - .002, xl = -iw/2;
     const trk = S.top.w / 5;
     for (let i=0;i<n;i++){
       const tIdx = half ? (i < 5 ? 4 - i : i - 5) : i;            // track 0..4
       const z = (tIdx - 2)*trk;
       const target = half ? (i < 5 ? xl + pw/2 : -xl - pw/2) : xl + pw*(n-.5);
-      const cx = xl + pw*(i+.5), x = cx + open*(target-cx)*.98;
-      const yc = y0 + ph/2;
-      add([x,yc,z],[pw - 2*S.stile.w, ph - S.panelTop.h - S.panelBottom.h, S.glass],"#BFDCE0",{a:.32});     // 10 mm glass
-      add([x-pw/2+S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame); add([x+pw/2-S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame);
-      add([x,y0+ph-S.panelTop.h/2,z],[pw,S.panelTop.h,S.panelTop.d],frame);
-      add([x,y0+S.panelBottom.h/2,z],[pw,S.panelBottom.h,S.panelBottom.d],frame);
+      const cx = xl + pw*(i+.5), x = cx + open*(target-cx);
+      const yc = y0 + ph/2, ov = .03, PW = pw + ov;   // (panel height reaches the top frame)                 // neighbouring panels overlap a little, like real interlocks
+      add([x,yc,z],[PW - 2*S.stile.w, ph - .006, S.glass],"#BFDCE0",{a:.32});     // 10 mm glass, running into the top and bottom rails
+      add([x-PW/2+S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame); add([x+PW/2-S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame);
+      add([x,y0+ph-S.panelTop.h/2,z],[PW,S.panelTop.h,S.panelTop.d],frame);
+      add([x,y0+S.panelBottom.h/2,z],[PW,S.panelBottom.h,S.panelBottom.d],frame);
     }
     return {boxes:B, foot:[w,1.6], shadow:0, center:[0,h/2,0], r:.5*Math.hypot(w,1.6,h)};
   }
@@ -1828,6 +1837,17 @@ function applyLang(){
 }
 
 /* ========================= SAVE AS PDF ========================= */
+// inside the homepage, the 3D model lives on the page: ask it for the two pictures first
+let EXT_SHOTS = null;
+function withShots(go){
+  if (!/[?&]embed=panel/.test(location.search) || window.parent === window){ EXT_SHOTS = null; go(); return; }
+  let done = false;
+  const fin = shots => { if (done) return; done = true; removeEventListener("message", on); EXT_SHOTS = shots; go(); EXT_SHOTS = null; };
+  const on = e => { if (e.source === parent && e.data && e.data.type === "fonoonShotsResult") fin(e.data.shots); };
+  addEventListener("message", on);
+  parent.postMessage({ type:"fonoonShots" }, "*");
+  setTimeout(() => fin(null), 10000);
+}
 function makePdf(lead){
   const t = T[lang];
   const now = new Date(), qn = (lead && lead.qn) || `FON-${String(now.getFullYear()).slice(2)}${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getTime() % 10000).padStart(4,"0")}`;
@@ -1835,10 +1855,11 @@ function makePdf(lead){
   const leadBox = lead ? `<div style="margin-top:12px;padding:8px 12px;border:1px solid #17575C;border-radius:6px;display:flex;justify-content:space-between;gap:12px;font-size:13px"><span>${t.preparedFor}: <b>${esc(lead.n)}</b> · <span dir="ltr">${esc(lead.p)}</span></span><span>${t.quoteNo} ${qn}</span></div>` : "";
   let img = "";
   try {
-    const keep = V3.open, keepSel = V3.spec && V3.spec.sel, shots = [];
+    const keep = V3.open, keepSel = V3.spec && V3.spec.sel; let shots = [];
     if (V3.spec) V3.spec.sel = null;                       // no yellow outline in the pictures
-    for (const o of [0, 1]){ V3.open = o; render3D(); shots.push(c3d.toDataURL("image/jpeg", .92)); }
-    V3.open = keep; if (V3.spec) V3.spec.sel = keepSel; render3D();
+    if (EXT_SHOTS) shots = EXT_SHOTS;                       // on the homepage table: pictures come from the page
+    else for (const o of [0, 1]){ V3.open = o; render3D(); shots.push(c3d.toDataURL("image/jpeg", .92)); }
+    V3.open = keep; if (V3.spec) V3.spec.sel = keepSel; if (!EXT_SHOTS) render3D();
     const lbl = [t.closedLbl, t.openLbl2];
     img = `<div class="qshots">${shots.map((u, i) => `<figure><img src="${u}" alt="${lbl[i]}"><figcaption>${lbl[i]}</figcaption></figure>`).join("")}</div>`;
   } catch(e){}
@@ -1882,7 +1903,7 @@ document.querySelectorAll(".logo-src").forEach(i => { i.src = document.querySele
 $("pdfBtn").addEventListener("click", () => {
   try { const s = JSON.parse(localStorage.getItem("fonoonLead") || "{}"); if (s.n && !$("leadName").value) $("leadName").value = s.n; if (s.p && !$("leadPhone").value) $("leadPhone").value = s.p; } catch(e){}
   $("leadErr").textContent = "";
-  if ($("leadDlg").showModal) $("leadDlg").showModal(); else makePdf(null);
+  if ($("leadDlg").showModal) $("leadDlg").showModal(); else withShots(() => makePdf(null));
   $("leadName").focus();
 });
 $("leadCancel").addEventListener("click", () => $("leadDlg").close());
@@ -1890,13 +1911,13 @@ $("leadForm").addEventListener("submit", e => {
   e.preventDefault();
   const t = T[lang], n = $("leadName").value.trim(), p = $("leadPhone").value.trim();
   // staff code: typing fonoonZ as the name makes a plain quote, with no lead recorded
-  if (n.toLowerCase() === STAFF_CODE.toLowerCase()){ $("leadName").value = ""; $("leadDlg").close(); makePdf(null); return; }
+  if (n.toLowerCase() === STAFF_CODE.toLowerCase()){ $("leadName").value = ""; $("leadDlg").close(); withShots(() => makePdf(null)); return; }
   if (n.length < 2){ $("leadErr").textContent = t.errName; $("leadName").focus(); return; }
   if (p.replace(/\D/g, "").length < 8){ $("leadErr").textContent = t.errPhone; $("leadPhone").focus(); return; }
   try { localStorage.setItem("fonoonLead", JSON.stringify({n, p})); } catch(e){}
   $("leadDlg").close();
   const now = new Date(), qn = `FON-${String(now.getFullYear()).slice(2)}${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getTime() % 10000).padStart(4,"0")}`;
-  makePdf({n, p, qn});
+  withShots(() => makePdf({n, p, qn}));
   sendLead({n, p, qn});
 });
 
