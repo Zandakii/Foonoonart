@@ -208,8 +208,8 @@
   .story-pin{position:sticky;top:68px;height:calc(100vh - 68px);overflow:hidden;background:#CDD4D7}
   #storyCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   /* soft wash behind the words so they stay readable over the scene */
-  .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(230,234,235,.82) 0%,rgba(230,234,235,.55) 30%,rgba(230,234,235,0) 52%);transition:opacity .4s}
-  [dir=rtl] .scrim{background:linear-gradient(270deg,rgba(230,234,235,.82) 0%,rgba(230,234,235,.55) 30%,rgba(230,234,235,0) 52%)}
+  .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(244,234,222,.82) 0%,rgba(244,234,222,.55) 30%,rgba(244,234,222,0) 52%);transition:opacity .4s}
+  [dir=rtl] .scrim{background:linear-gradient(270deg,rgba(244,234,222,.82) 0%,rgba(244,234,222,.55) 30%,rgba(244,234,222,0) 52%)}
   .story.night .scrim{background:linear-gradient(90deg,rgba(12,18,24,.78) 0%,rgba(12,18,24,.5) 30%,rgba(12,18,24,0) 52%)}
   [dir=rtl] .story.night .scrim{background:linear-gradient(270deg,rgba(12,18,24,.78) 0%,rgba(12,18,24,.5) 30%,rgba(12,18,24,0) 52%)}
   .story.ending .scrim{opacity:0}
@@ -236,6 +236,10 @@
   .mini-ui{position:absolute;top:18px;inset-inline-start:max(24px,calc((100vw - 1240px)/2 + 24px));display:flex;align-items:center;gap:14px;z-index:3;opacity:0;pointer-events:none;transition:opacity .35s}
   .story.live .mini-ui{opacity:1;pointer-events:auto}
   .mini-hint{font-size:13.5px;color:#B9C2C5}
+  .story:not(.night) .mini-hint{color:var(--graphite)}
+  .mini-pills{background:rgba(20,26,30,.45);border-color:rgba(255,255,255,.25)}
+  .mini-pills button{color:#E9EDEE}
+  .mini-pills button[aria-pressed=true]{background:#F2F2EF;color:var(--graphite)}
   .story.live #storyCanvas{cursor:grab;touch-action:none}
   .story.live #storyCanvas:active{cursor:grabbing}
   @media (max-width:900px){#storyFrame{inset-inline:0;top:auto;bottom:0;width:100%;height:56%}.mini-hint{display:none}}
@@ -255,7 +259,7 @@
   .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
   .reveal.in{opacity:1;transform:none}
   @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none}.scroll-hint::after{animation:none}}
-  @media (max-width:900px){.scrim,[dir=rtl] .scrim{background:linear-gradient(0deg,rgba(230,234,235,.9) 0%,rgba(230,234,235,.6) 28%,rgba(230,234,235,0) 48%)}.story.night .scrim,[dir=rtl] .story.night .scrim{background:linear-gradient(0deg,rgba(12,18,24,.85) 0%,rgba(12,18,24,.55) 28%,rgba(12,18,24,0) 48%)}.scap-hero~.scrim{}}
+  @media (max-width:900px){.scrim,[dir=rtl] .scrim{background:linear-gradient(0deg,rgba(244,234,222,.9) 0%,rgba(244,234,222,.6) 28%,rgba(244,234,222,0) 48%)}.story.night .scrim,[dir=rtl] .story.night .scrim{background:linear-gradient(0deg,rgba(12,18,24,.85) 0%,rgba(12,18,24,.55) 28%,rgba(12,18,24,0) 48%)}.scap-hero~.scrim{}}
   @media (max-width:900px){.story{height:640vh}.scap{inset-inline:20px;bottom:9%;max-width:none}.scap-hero{top:6%}.scap p{font-size:16px}.scap h2{font-size:28px}}
   /* printable quote (Save as PDF) */
   #quote{display:none}
@@ -1156,8 +1160,9 @@ function buildModel(sp, open){
     }
     if (sp.led){
       const c = "#FFE39A";
-      add([0,H-.01,-d/2+.06],[w-.3,.02,.04],c,{emit:true}); add([0,H-.01,d/2-.06],[w-.3,.02,.04],c,{emit:true});
-      add([-w/2+.06,H-.01,0],[.04,.02,d-.3],c,{emit:true}); add([w/2-.06,H-.01,0],[.04,.02,d-.3],c,{emit:true});
+      // on the inner face of the outer frame, above the glass line, so glass in an opening never hides it
+      add([0,H+.035,-d/2+.126],[w-.3,.03,.012],c,{emit:true}); add([0,H+.035,d/2-.126],[w-.3,.03,.012],c,{emit:true});
+      add([-w/2+.126,H+.035,0],[.012,.03,d-.3],c,{emit:true}); add([w/2-.126,H+.035,0],[.012,.03,d-.3],c,{emit:true});
       pool([-w/2-.5,-w/2+.4,w/2-.4,w/2+.5],[0,1,1,0],[-d/2-.5,-d/2+.4,d/2-.4,d/2+.5],[0,1,1,0], .22);
       // middle beams: LED on both sides
       for (const mx of mids){
