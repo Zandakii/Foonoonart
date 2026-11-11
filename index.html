@@ -236,6 +236,10 @@
   .mini-ui{position:absolute;top:18px;inset-inline-start:max(24px,calc((100vw - 1240px)/2 + 24px));display:flex;align-items:center;gap:14px;z-index:3;opacity:0;pointer-events:none;transition:opacity .35s}
   .story.live .mini-ui{opacity:1;pointer-events:auto}
   .mini-hint{font-size:13.5px;color:#B9C2C5}
+  .story:not(.night) .mini-hint{color:var(--graphite)}
+  .mini-pills{background:rgba(20,26,30,.45);border-color:rgba(255,255,255,.25)}
+  .mini-pills button{color:#E9EDEE}
+  .mini-pills button[aria-pressed=true]{background:#F2F2EF;color:var(--graphite)}
   .story.live #storyCanvas{cursor:grab;touch-action:none}
   .story.live #storyCanvas:active{cursor:grabbing}
   @media (max-width:900px){#storyFrame{inset-inline:0;top:auto;bottom:0;width:100%;height:56%}.mini-hint{display:none}}
@@ -364,6 +368,10 @@
     <div class="scap" data-a=".75" data-b=".84"><h2 data-t="sBuildT">Now build yours</h2><p data-t="sBuildP">Pick a roof, choose the glass for every side and see the price straight away.</p></div>
     <iframe id="storyFrame" data-src="pergola.html?embed=panel&roof=smartroof&mount=free" title="Pergola builder options" tabindex="-1"></iframe>
     <div class="mini-ui">
+      <div class="pills mini-pills" aria-label="Day or night">
+        <button type="button" id="miniDay" aria-pressed="false" data-t="dayLbl">Day</button>
+        <button type="button" id="miniNight" aria-pressed="true" data-t="nightLbl">Night</button>
+      </div>
       <button type="button" class="opbtn" id="miniOpen" data-t="openAll">Open roof and glass</button>
       <a class="opbtn" href="pergola.html" data-t="builderOnly">Open the builder only</a>
       <span class="mini-hint" data-t="miniHint">Drag to walk around the table</span>
@@ -2302,7 +2310,8 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
 
   const W0 = 4.4, D0 = 3.8, H0 = 2.5;                         // the pergola: 4.4 × 3.8 m retractable fabric pergola, freestanding
   const FAB = fabricConfig(W0, D0), TK = fabricGeom(W0, D0, FAB, "free", H0);
-  const MINI = { spec:null, open:0, target:0 };              // the design from the builder, shown on the table
+  const MINI = { spec:null, open:0, target:0 };
+  const ENV = { day:0, target:0 };                           // 0 = night, 1 = day (only at the table)              // the design from the builder, shown on the table
   const RW = FAB.thick ? .091 : .07, XR = Array.from({length:FAB.rails}, (_, i) => -W0/2 + RW/2 + i*(W0 - RW)/(FAB.rails - 1));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ss = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t*t*(3 - 2*t); };
@@ -2422,7 +2431,9 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
 
   function scene(t){
     // day → sunset while the camera rises and the roof opens → night as it walks in to the table
-    const sunset = ss(.54, .66, t), night = ss(.74, .86, t), roofOpen = ss(.62, .70, t);
+    let sunset = ss(.54, .66, t), night = ss(.74, .86, t);
+    const roofOpen = ss(.62, .70, t);
+    if (t >= .86){ sunset = 1 - ENV.day; night = 1 - ENV.day; }   // the Day / Night switch beside the table
     const op = { sliding: ss(.12, .20, t), panorama: ss(.26, .34, t), folding: ss(.40, .48, t) };   // each opens in turn and stays open
     const sp = {key:"fabric", w:W0, d:D0, hf:H0, colour:"anthracite", fabricCol:"beige", wood:false, led: true, rails:FAB.rails, thick:FAB.thick, tk:TK, mount:"free", structure:"aluminium"};
     const M = buildModel(sp, roofOpen);
@@ -2735,6 +2746,13 @@ function storyMiniScene(sp, open){
   });
   const end = () => { drag = null; };
   sc.addEventListener("pointerup", end); sc.addEventListener("pointercancel", end);
+  const setEnv = d => {
+    ENV.target = d; $("miniDay").setAttribute("aria-pressed", d === 1); $("miniNight").setAttribute("aria-pressed", d === 0);
+    const step = () => { ENV.day += (ENV.target - ENV.day) * (reduceMotion ? 1 : .08); if (Math.abs(ENV.target - ENV.day) < .002) ENV.day = ENV.target; redraw(); if (ENV.day !== ENV.target) requestAnimationFrame(step); };
+    step();
+  };
+  $("miniDay").addEventListener("click", () => setEnv(1));
+  $("miniNight").addEventListener("click", () => setEnv(0));
   $("miniOpen").addEventListener("click", () => {
     MINI.target = MINI.target ? 0 : 1; $("miniOpen").textContent = T[lang][MINI.target ? "closeAll" : "openAll"];
     const step = () => { MINI.open += (MINI.target - MINI.open) * .15; if (Math.abs(MINI.target - MINI.open) < .002) MINI.open = MINI.target; redraw(); if (MINI.open !== MINI.target) requestAnimationFrame(step); };
