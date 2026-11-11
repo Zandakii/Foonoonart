@@ -1792,7 +1792,7 @@ function buildModel(sp, open){
     add([0,h-F.track/2,0],[w,F.track,.07],frame);          // top track
     add([0,F.track/4,0],[w,F.track/2,.07],frame);           // bottom track
     add([-w/2+.01,h/2,0],[.02,h,.07],frame); add([w/2-.01,h/2,0],[.02,h,.07],frame);   // slim side frames
-    const th = open*Math.PI/2, ph = h - F.track*1.5 - .01, yc = F.track/2 + .005 + ph/2;
+    const th = open*Math.PI/2, ph = h - F.track/2 - .006, yc = F.track/2 + .003 + ph/2;   // panels run right up to the top, so no gap shows above a folded stack
     for (let i=0;i<n;i++){
       let c, ry;
       if (i < G.nL){            // left group: pivots on its left edge and stacks at the left end
@@ -1816,20 +1816,20 @@ function buildModel(sp, open){
     B.length = 0;
     add([0,h-S.top.h/2,0],[w,S.top.h,S.top.w],frame);
     add([0,S.bottom.h/2,0],[w,S.bottom.h,S.bottom.w],frame);
-    add([-w/2+S.side.w/2,h/2,0],[S.side.w,h,S.side.d],frame); add([w/2-S.side.w/2,h/2,0],[S.side.w,h,S.side.d],frame);
+    add([-w/2+S.side.w/2,h/2,0],[S.side.w,h,Math.max(S.side.d, S.top.w)],frame); add([w/2-S.side.w/2,h/2,0],[S.side.w,h,Math.max(S.side.d, S.top.w)],frame);   // jambs as deep as the tracks: no gap at the ends
     // 5 panels on 5 tracks; over 6 m wide, 10 panels: 5 stack to the left, 5 to the right
-    const iw = w - 2*S.side.w, pw = iw/n, ph = h - S.top.h - S.bottom.h - .01, y0 = S.bottom.h + .005, xl = -iw/2;
+    const iw = w - 2*S.side.w, pw = iw/n, ph = h - S.top.h - S.bottom.h + .004, y0 = S.bottom.h - .002, xl = -iw/2;
     const trk = S.top.w / 5;
     for (let i=0;i<n;i++){
       const tIdx = half ? (i < 5 ? 4 - i : i - 5) : i;            // track 0..4
       const z = (tIdx - 2)*trk;
       const target = half ? (i < 5 ? xl + pw/2 : -xl - pw/2) : xl + pw*(n-.5);
-      const cx = xl + pw*(i+.5), x = cx + open*(target-cx)*.98;
-      const yc = y0 + ph/2;
-      add([x,yc,z],[pw - 2*S.stile.w, ph - S.panelTop.h - S.panelBottom.h, S.glass],"#BFDCE0",{a:.32});     // 10 mm glass
-      add([x-pw/2+S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame); add([x+pw/2-S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame);
-      add([x,y0+ph-S.panelTop.h/2,z],[pw,S.panelTop.h,S.panelTop.d],frame);
-      add([x,y0+S.panelBottom.h/2,z],[pw,S.panelBottom.h,S.panelBottom.d],frame);
+      const cx = xl + pw*(i+.5), x = cx + open*(target-cx);
+      const yc = y0 + ph/2, ov = .03, PW = pw + ov;   // (panel height reaches the top frame)                 // neighbouring panels overlap a little, like real interlocks
+      add([x,yc,z],[PW - 2*S.stile.w, ph - .006, S.glass],"#BFDCE0",{a:.32});     // 10 mm glass, running into the top and bottom rails
+      add([x-PW/2+S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame); add([x+PW/2-S.stile.w/2,yc,z],[S.stile.w,ph,S.stile.d],frame);
+      add([x,y0+ph-S.panelTop.h/2,z],[PW,S.panelTop.h,S.panelTop.d],frame);
+      add([x,y0+S.panelBottom.h/2,z],[PW,S.panelBottom.h,S.panelBottom.d],frame);
     }
     return {boxes:B, foot:[w,1.6], shadow:0, center:[0,h/2,0], r:.5*Math.hypot(w,1.6,h)};
   }
@@ -2393,12 +2393,16 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     const op = { sliding: ss(.12, .20, t), panorama: ss(.26, .34, t), folding: ss(.40, .48, t) };   // each opens in turn and stays open
     const sp = {key:"fabric", w:W0, d:D0, hf:H0, colour:"anthracite", fabricCol:"beige", wood:false, led: night > .5, rails:FAB.rails, thick:FAB.thick, tk:TK, mount:"free", structure:"aluminium"};
     const M = buildModel(sp, roofOpen);
+    // side triangles under the sloped roof, closed with one sheet of glass each
+    { const Hf = TK.hf, Yr = Hf + TK.rise, beamTop = Hf - .125, z0 = -D0/2 + .13, z1 = D0/2 - .13, topAt = z => Yr - .15 - (z + D0/2) * TK.rise / D0;
+      M.polys = (M.polys || []);
+      for (const x of [XR[0], XR[XR.length - 1]]) M.polys.push({ pts:[[x, beamTop, z0], [x, beamTop, z1], [x, topAt(z1), z1], [x, topAt(z0), z0]], col:"#BFDCE0", glass:.32 }); }
     // glass between the posts: front under the front beam, sides under the side beams
     const zF = D0/2 - .079, zB = -D0/2 + .079, sideW = (zF - .05) - (zB + .05), xL = XR[0], xR = XR[XR.length - 1];
     const sides = [
       {key:"sliding",  c:[xR, 0, 0], phi: Math.PI/2, w:sideW, h:H0 - .225},          // right side
       {key:"panorama", c:[0, 0, zF], phi:0, w:(xR - .05) - (xL + .05), h:H0 - .125},   // front
-      {key:"folding",  c:[xL, 0, 0], phi:-Math.PI/2, w:sideW, h:H0 - .225}           // left side
+      {key:"folding",  c:[xL, 0, 0], phi: Math.PI/2, w:sideW, h:H0 - .225}           // left side (turned so the panels fold inwards)
     ];
     for (const s of sides){
       for (const b of buildModel({key:s.key, w:s.w, d:s.h, colour:"anthracite"}, op[s.key]).boxes){
@@ -2480,8 +2484,8 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
   }
   function pushPoly(arr, pl){
     const P = pl.pts, u0 = [P[1][0]-P[0][0], P[1][1]-P[0][1], P[1][2]-P[0][2]], v0 = [P[2][0]-P[0][0], P[2][1]-P[0][1], P[2][2]-P[0][2]];
-    const nn = nrm([u0[1]*v0[2]-u0[2]*v0[1], u0[2]*v0[0]-u0[0]*v0[2], u0[0]*v0[1]-u0[1]*v0[0]]), c = lin(pl.col).concat([1]), kind = pl.leaf ? 2 : (pl.kind || 0);
-    for (let i = 1; i < P.length - 1; i++) for (const p of [P[0], P[i], P[i+1]]) arr.push(p[0], p[1], p[2], nn[0], nn[1], nn[2], c[0], c[1], c[2], c[3], kind, pl.leaf ? .3 : .1);
+    const nn = nrm([u0[1]*v0[2]-u0[2]*v0[1], u0[2]*v0[0]-u0[0]*v0[2], u0[0]*v0[1]-u0[1]*v0[0]]), c = lin(pl.col).concat([pl.glass || 1]), kind = pl.glass ? 3 : pl.leaf ? 2 : (pl.kind || 0);
+    for (let i = 1; i < P.length - 1; i++) for (const p of [P[0], P[i], P[i+1]]) arr.push(p[0], p[1], p[2], nn[0], nn[1], nn[2], c[0], c[1], c[2], c[3], kind, pl.glass ? 1.2 : pl.leaf ? .3 : .1);
   }
   function bindMain(buf){
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -2516,7 +2520,7 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
     }
     const op = [], tr = [];
     for (const b of M.boxes) pushBox(op, tr, b);
-    for (const pl of (M.polys || [])) pushPoly(op, pl);
+    for (const pl of (M.polys || [])) pushPoly(pl.glass ? tr : op, pl);
     gl.bindBuffer(gl.ARRAY_BUFFER, dBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(op), gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, tBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tr), gl.DYNAMIC_DRAW);
 
@@ -2645,8 +2649,25 @@ function storyMiniScene(sp, open){
   const kick = () => { want = progress(); if (!raf) raf = requestAnimationFrame(frameLoop); };
   const redraw = () => { if (!raf) raf = requestAnimationFrame(frameLoop); };
   addEventListener("message", e => {
-    if (e.source !== frame.contentWindow || !e.data || e.data.type !== "fonoonSpec") return;
-    MINI.spec = e.data.spec; redraw();
+    if (e.source !== frame.contentWindow || !e.data) return;
+    if (e.data.type === "fonoonSpec"){ MINI.spec = e.data.spec; redraw(); return; }
+    if (e.data.type === "fonoonShots"){
+      // pictures of the model on the table, closed and open, for the builder's PDF
+      const keep = MINI.open, shots = [], w = W < 900 ? W : W - frame.offsetWidth, h = W < 900 ? H - frame.offsetHeight : H;
+      const dpr = sc.width / W, x0 = lang === "ar" && W >= 900 ? frame.offsetWidth : 0;
+      for (const o of [0, 1]){
+        MINI.open = o; draw(cur);
+        const c2 = document.createElement("canvas"); c2.width = Math.round(w*dpr); c2.height = Math.round(h*dpr);
+        const g = c2.getContext("2d"), gr = g.createLinearGradient(0, 0, 0, c2.height);
+        const bgc = getComputedStyle(pin).backgroundImage.match(/rgba?\([^)]*\)|#[0-9a-f]{6}/gi) || ["#9DB4C2", "#DDE3E3"];
+        gr.addColorStop(0, bgc[0]); gr.addColorStop(.62, bgc[1] || bgc[0]); gr.addColorStop(1, bgc[1] || bgc[0]);
+        g.fillStyle = gr; g.fillRect(0, 0, c2.width, c2.height);
+        g.drawImage(sc, x0*dpr, 0, c2.width, c2.height, 0, 0, c2.width, c2.height);
+        shots.push(c2.toDataURL("image/jpeg", .9));
+      }
+      MINI.open = keep; draw(cur);
+      frame.contentWindow.postMessage({ type:"fonoonShotsResult", shots }, "*");
+    }
   });
   // drag to walk the camera around the table (the model stays where it is)
   let drag = null;
