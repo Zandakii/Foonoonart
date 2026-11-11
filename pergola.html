@@ -1922,6 +1922,7 @@ function sendLead(lead){
 /* ========================= INIT ========================= */
 if (/[?&]embed/.test(location.search)) document.documentElement.classList.add("embed");
 if (/[?&]embed=panel/.test(location.search)) document.documentElement.classList.add("embed-panel");
+for (const k of ["roof", "mount"]){ const v = (location.search.match(new RegExp(`[?&]${k}=(\\w+)`)) || [])[1], el = v && document.querySelector(`input[name=${k}][value=${v}]`); if (el) el.checked = true; }
 $("year").textContent = new Date().getFullYear();
 $("langBtn").addEventListener("click", () => { lang = lang === "en" ? "ar" : "en"; applyLang(); });
 $("calcForm").addEventListener("input", e => { if (!e.target.closest("#opList") && e.target.id !== "setAll") update(); });

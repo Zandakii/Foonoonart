@@ -347,12 +347,12 @@
         <a class="btn btn-ghost" href="pergola.html" data-t="builderOnly">Open the builder only</a>
       </div>
     </div>
-    <div class="scap" data-a=".15" data-b=".27"><span class="side" data-t="sideFront2">Front</span><h2 data-t="sFoldT">Folding system</h2><p data-t="sFoldP">Frameless 10 mm glass panels fold to one side and open up the whole front.</p></div>
-    <div class="scap" data-a=".30" data-b=".40"><span class="side" data-t="sideRight2">Right side</span><h2 data-t="sSlideT">Sliding system</h2><p data-t="sSlideP">Glass panels glide past each other on slim aluminium tracks.</p></div>
-    <div class="scap" data-a=".44" data-b=".53"><span class="side" data-t="sideRoof2">Roof</span><h2 data-t="sRoofT">Retractable fabric pergola</h2><p data-t="sRoofP">The waterproof fabric folds back along the rails by remote, from full shade to open sky. LED lighting comes on in the evening.</p></div>
-    <div class="scap" data-a=".57" data-b=".66"><span class="side" data-t="sideLeft2">Left side</span><h2 data-t="sPanoT">Panorama system</h2><p data-t="sPanoP">Three glass panels slide down for a clear, open view.</p></div>
-    <div class="scap" data-a=".71" data-b=".84"><h2 data-t="sBuildT">Now build yours</h2><p data-t="sBuildP">Pick a roof, choose the glass for every side and see the price straight away.</p></div>
-    <iframe id="storyFrame" data-src="pergola.html?embed=panel" title="Pergola builder options" tabindex="-1"></iframe>
+    <div class="scap" data-a=".12" data-b=".24"><span class="side" data-t="sideRight2">Right side</span><h2 data-t="sSlideT">Sliding system</h2><p data-t="sSlideP">Glass panels glide past each other on slim aluminium tracks.</p></div>
+    <div class="scap" data-a=".27" data-b=".38"><span class="side" data-t="sideFront2">Front</span><h2 data-t="sPanoT">Panorama system</h2><p data-t="sPanoP">Three glass panels slide down for a clear, open view.</p></div>
+    <div class="scap" data-a=".41" data-b=".52"><span class="side" data-t="sideLeft2">Left side</span><h2 data-t="sFoldT">Folding system</h2><p data-t="sFoldP">Frameless 10 mm glass panels fold to one side and open up the whole front.</p></div>
+    <div class="scap" data-a=".60" data-b=".70"><span class="side" data-t="sideRoof2">Roof</span><h2 data-t="sRoofT">Retractable fabric pergola</h2><p data-t="sRoofP">The waterproof fabric folds back along the rails by remote, from full shade to open sky. LED lighting comes on in the evening.</p></div>
+    <div class="scap" data-a=".75" data-b=".84"><h2 data-t="sBuildT">Now build yours</h2><p data-t="sBuildP">Pick a roof, choose the glass for every side and see the price straight away.</p></div>
+    <iframe id="storyFrame" data-src="pergola.html?embed=panel&roof=smartroof&mount=free" title="Pergola builder options" tabindex="-1"></iframe>
     <div class="mini-ui">
       <button type="button" class="opbtn" id="miniOpen" data-t="openAll">Open roof and glass</button>
       <a class="opbtn" href="pergola.html" data-t="builderOnly">Open the builder only</a>
@@ -2224,16 +2224,16 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
   }
 
   function scene(t){
-    const night = ss(.40, .50, t), roofOpen = ss(.42, .52, t);
-    const op = { folding: Math.min(1, ss(.13, .22, t) * (1 - ss(.30, .36, t)) + ss(.64, .72, t)), sliding: ss(.27, .36, t) * (1 - ss(.44, .50, t)), panorama: ss(.54, .61, t) };
+    const night = ss(.56, .64, t), roofOpen = ss(.62, .70, t);
+    const op = { sliding: ss(.12, .20, t), panorama: ss(.26, .34, t), folding: ss(.40, .48, t) };   // each opens in turn and stays open
     const sp = {key:"fabric", w:W0, d:D0, hf:H0, colour:"anthracite", fabricCol:"beige", wood:false, led: night > .5, rails:FAB.rails, thick:FAB.thick, tk:TK, mount:"free", structure:"aluminium"};
     const M = buildModel(sp, roofOpen);
     // glass between the posts: front under the front beam, sides under the side beams
     const zF = D0/2 - .079, zB = -D0/2 + .079, sideW = (zF - .05) - (zB + .05), xL = XR[0], xR = XR[XR.length - 1];
     const sides = [
-      {key:"folding",  c:[0, 0, zF], phi:0, w:(xR - .05) - (xL + .05), h:H0 - .125},
-      {key:"sliding",  c:[xL, 0, 0], phi:-Math.PI/2, w:sideW, h:H0 - .225},
-      {key:"panorama", c:[xR, 0, 0], phi: Math.PI/2, w:sideW, h:H0 - .225}
+      {key:"sliding",  c:[xR, 0, 0], phi: Math.PI/2, w:sideW, h:H0 - .225},          // right side
+      {key:"panorama", c:[0, 0, zF], phi:0, w:(xR - .05) - (xL + .05), h:H0 - .125},   // front
+      {key:"folding",  c:[xL, 0, 0], phi:-Math.PI/2, w:sideW, h:H0 - .225}           // left side
     ];
     for (const s of sides){
       for (const b of buildModel({key:s.key, w:s.w, d:s.h, colour:"anthracite"}, op[s.key]).boxes){
@@ -2246,8 +2246,9 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
       const sp = {...MINI.spec, led: night > .5}, m = storyMiniScene(sp, MINI.open);
       const big = Math.max(sp.w, sp.d, (sp.hf || 2.5) * 1.2), k = .82 / big, y0 = .785;
       const grow = ss(.74, .84, t), kk = k * (.2 + .8*grow);
-      for (const b of m.boxes) M.boxes.push({...b, c:[b.c[0]*kk, y0 + b.c[1]*kk, b.c[2]*kk], s:b.s.map(v => v*kk)});
-      if (night > .5) for (const g of (m.glow || [])) (M.glow = M.glow || []).push({...g, pts:g.pts.map(p => [p[0]*kk, y0 + p[1]*kk, p[2]*kk])});
+      // the builder's own view has its x axis the other way round, so mirror the model to keep its right side on the right
+      for (const b of m.boxes) M.boxes.push({...b, c:[-b.c[0]*kk, y0 + b.c[1]*kk, b.c[2]*kk], s:b.s.map(v => v*kk), ry:-(b.ry || 0)});
+      if (night > .5) for (const g of (m.glow || [])) (M.glow = M.glow || []).push({...g, pts:g.pts.map(p => [-p[0]*kk, y0 + p[1]*kk, p[2]*kk])});
     }
     return { M, night };
   }
@@ -2256,12 +2257,12 @@ $("qtyPlus").addEventListener("click", () => stepQty(1));
   // [t, angle around, distance, height, target height, zoom, sideways shift (share of the width, away from the text)]
   const KEYS = [
     [0,    .55, 11.5, 4.2, 1.2, 1,    .2],
-    [.08,  .35, 10.5, 3.6, 1.2, 1,    .16],
-    [.20,  0,    8.6, 2.2, 1.3, 1.05, .14],
-    [.34, -Math.PI/2, 8.2, 2.4, 1.3, 1.05, .14],
-    [.47, -Math.PI,   8.6, 3.0, 1.2, 1,    .14],
-    [.60, -1.5*Math.PI, 8.2, 2.4, 1.3, 1.05, .14],
-    [.72, -2*Math.PI, 6.2, 1.8, 1.0, 1, .1]
+    [.06,  .75, 10.5, 3.4, 1.2, 1,    .16],
+    [.16,  Math.PI/2, 6.6, 1.8, 1.25, 1.05, .14],    // sliding (right side)
+    [.30,  0,         6.8, 1.8, 1.25, 1.05, .14],    // panorama (front)
+    [.44, -Math.PI/2, 6.6, 1.8, 1.25, 1.05, .14],    // folding (left side)
+    [.58,  0,         6.4, 6.2, .9, 1, .1],           // lift up: from the front, looking down on the roof
+    [.72,  0,         6.0, 5.6, .9, 1, .08]           // the fabric folds back
   ];
   // after the tour: come round to the front, walk in through the open folding glass and sit facing the tablet
   const ORB = { yaw:0, h:1.6, r:1.95 };                     // the visitor turns this camera around the table
