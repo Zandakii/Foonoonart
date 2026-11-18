@@ -1050,6 +1050,46 @@ function buildUmbrella(sp, fold, add, B){
   return { boxes:B, polys, decals, decalDark: lum < 120, foot:[w*1.05, w*1.05], shadow:o, center:[0, top/2, 0], r };
 }
 
+/* Fixed glass and glass doors (pergola builder): built inside one opening, w wide and h high.
+   Fixed glass: panes up to 1.2 m wide in slim profiles. Door: 1 or 2 leaves, each at most 1.2 m wide
+   and 2.2 m high, centred, with fixed glass beside and above it. Open = the leaves swing outward. */
+const DOOR = { maxW:1.2, maxH:2.2 };
+function doorLayout(key, w, h){
+  const n = key === "door2" ? 2 : 1, lw = Math.min(DOOR.maxW, w / n), dh = Math.min(DOOR.maxH, h);
+  return { n, lw, dw:lw*n, dh, side:(w - lw*n) / 2, top:h - dh };
+}
+function glassUnit(key, w, h, colour, open){
+  if (key !== "fixed" && key !== "door1" && key !== "door2") return buildModel({key, w, d:h, colour}, open).boxes;
+  const B = [], frame = ALU_COLOURS[colour] || "#8C989D", pr = .045, dp = .06;
+  const add = (c, s, col, o={}) => B.push({c, s, col, rx:0, ry:o.ry||0, a:o.a||1, emit:false});
+  // a framed fixed pane; wide areas are split into equal panes no wider than 1.2 m
+  const fixed = (x0, x1, y0, y1) => {
+    const W = x1 - x0, H = y1 - y0; if (W < .02 || H < .02) return;
+    const k = Math.max(1, Math.ceil(W / 1.2 - 1e-9)), pw = W / k;
+    for (let i = 0; i < k; i++){ const cx = x0 + pw*(i + .5);
+      add([cx, y0 + H/2, 0], [pw - pr, H - pr, .012], "#BFDCE0", {a:.32});
+      add([x0 + pw*i + pr/4, y0 + H/2, 0], [pr/2, H, dp], frame); add([x0 + pw*(i+1) - pr/4, y0 + H/2, 0], [pr/2, H, dp], frame); }
+    add([x0 + W/2, y1 - pr/4, 0], [W, pr/2, dp], frame); add([x0 + W/2, y0 + pr/4, 0], [W, pr/2, dp], frame);
+  };
+  if (key === "fixed"){ fixed(-w/2, w/2, 0, h); return B; }
+  const L = doorLayout(key, w, h), xl = -L.dw/2;
+  fixed(-w/2, xl, 0, h); fixed(-xl, w/2, 0, h); fixed(xl, -xl, L.dh, h);
+  // the door frame
+  add([xl + pr/2, L.dh/2, 0], [pr, L.dh, dp + .01], frame); add([-xl - pr/2, L.dh/2, 0], [pr, L.dh, dp + .01], frame);
+  add([0, L.dh - pr/2, 0], [L.dw, pr, dp + .01], frame);
+  // the leaves: frameless glass with top and bottom fittings, swinging out on hinges at the outer edges
+  for (let i = 0; i < L.n; i++){
+    const left = L.n === 1 || i === 0, hx = left ? xl + pr : -xl - pr, dir = left ? 1 : -1, lw = L.lw - pr*(L.n === 1 ? 2 : 1.5);
+    const th = -dir * open * 1.25, gh = L.dh - pr - .012;     // turns so the free edge swings outward
+    const at = (lx, ly, s, col, o) => add([hx + lx*Math.cos(th), ly, .04 - lx*Math.sin(th)], s, col, {ry:th, ...o});
+    const mid = dir * lw/2;
+    at(mid, .006 + gh/2, [lw, gh, .012], "#BFDCE0", {a:.36});
+    at(mid, .045, [lw, .07, .03], frame); at(mid, gh - .035, [lw, .07, .03], frame);   // bottom and top patch rails
+    at(dir * (lw - .09), 1.05, [.025, .6, .07], "#C8CCCE");                          // pull handle, both faces
+  }
+  return B;
+}
+
 function buildModel(sp, open){
   const B = [], add = (c,s,col,o={}) => B.push({c, s, col, rx:o.rx||0, ry:o.ry||0, a:o.a||1, emit:!!o.emit});
   // LED light: soft pools on the floor and faint beams, drawn as added light
@@ -1468,7 +1508,7 @@ Object.assign(T.en, {
   pTotal:"Estimated total", sumLine:(r,g,c)=>`Roof ${r} + sides ${g} ${c}`, roofOnly:"Roof only, no glass chosen yet",
   openAll:"Open roof and glass", closeAll:"Close roof and glass", bRoof:"Roof", bGlassTotal:"Glass systems", bOpening:"Opening",
   waHello2:"Hello Fonoon, I would like a quote for this pergola:", qOpenings:"Openings", wallTxt:"Wall",
-  plusPillars:n=>`+${n} pillar${n>1?"s":""}`, closedLbl:"Closed", short:{folding:"Folding",sliding:"Sliding",panorama:"Panorama"}, openLbl2:"Open", lHfFab:"Front height", builderLink:"Want glass on the sides too? Try the pergola builder"
+  plusPillars:n=>`+${n} pillar${n>1?"s":""}`, closedLbl:"Closed", short:{folding:"Folding",sliding:"Sliding",panorama:"Panorama",fixed:"Fixed glass",door1:"Door, 1 panel",door2:"Door, 2 panels"}, doorNote:(n,lw,dh)=>`door ${n} × ${lw} × ${dh} m`, openLbl2:"Open", lHfFab:"Front height", builderLink:"Want glass on the sides too? Try the pergola builder"
 });
 Object.assign(T.ar, {
   navBuilder:"صمّم برجولتك", bTitle:"صمّم برجولتك", lRoof:"السقف", rFabric:"برجولة قماش متحركة", rSmart:"سقف ألومنيوم ذكي",
@@ -1480,10 +1520,13 @@ Object.assign(T.ar, {
   pTotal:"الإجمالي التقديري", sumLine:(r,g,c)=>`السقف ${r} + الجوانب ${g} ${c}`, roofOnly:"السقف فقط، لم يتم اختيار زجاج بعد",
   openAll:"افتح السقف والزجاج", closeAll:"أغلق السقف والزجاج", bRoof:"السقف", bGlassTotal:"أنظمة الزجاج", bOpening:"فتحة",
   waHello2:"مرحبًا فنون، أريد عرض سعر لهذه البرجولة:", qOpenings:"الفتحات", wallTxt:"حائط",
-  plusPillars:n=>`+${n} ${n>1?"أعمدة":"عمود"}`, closedLbl:"مغلق", short:{folding:"فولدينج",sliding:"سحاب",panorama:"بانوراما"}, openLbl2:"مفتوح", lHfFab:"الارتفاع الأمامي", builderLink:"تريد زجاج على الجوانب؟ جرّب مصمم البرجولة"
+  plusPillars:n=>`+${n} ${n>1?"أعمدة":"عمود"}`, closedLbl:"مغلق", short:{folding:"فولدينج",sliding:"سحاب",panorama:"بانوراما",fixed:"زجاج ثابت",door1:"باب ضلفة واحدة",door2:"باب ضلفتين"}, doorNote:(n,lw,dh)=>`الباب ${n} × ${lw} × ${dh} م`, openLbl2:"مفتوح", lHfFab:"الارتفاع الأمامي", builderLink:"تريد زجاج على الجوانب؟ جرّب مصمم البرجولة"
 });
 
-const GLASS = ["folding", "sliding", "panorama"];
+const GLASS = ["folding", "sliding", "panorama", "fixed", "door1", "door2"];
+// fixed glass and doors: glass by the m² of the whole opening, plus the hinge and lock set for each door panel
+const FIXED_RATE = 2500, DOOR_MECH = 1500;
+for (const L of ["en", "ar"]){ const p = T[L].products, sh = T[L].short; for (const k of ["fixed", "door1", "door2"]) p[k] = p[k] || { name:sh[k] }; }
 const roundUp = v => Math.ceil(Math.round(v) / 1000) * 1000;
 const choice = {};
 /* Side triangle (fabric pergola): closed per m² of the full rectangle, depth × slope */
@@ -1505,6 +1548,8 @@ function glassCheck(key, w, h){
   if (key === "folding"){ if (h > PRICING.products.folding.maxH + 1e-9) return t.tooTall(PRICING.products.folding.maxH); if (w > FOLDING.maxW) return t.tooWide(FOLDING.maxW); }
   if (key === "sliding"){ if (h > PRICING.products.sliding.maxH + 1e-9) return t.tooTall(PRICING.products.sliding.maxH); if (w > SLIDING.maxW) return t.tooWide(SLIDING.maxW); }
   if (key === "panorama"){ if (h > PRICING.products.panorama.maxH + 1e-9) return t.tooTall(PRICING.products.panorama.maxH); }
+  if (key === "door2" && w < 1.2) return t.tooNarrow(1.2);
+  if ((key === "door1" || key === "door2") && h < 1.9) return lang === "ar" ? "أقل ارتفاع 1.9 م" : "min 1.9 m high";
   if (w < .8) return t.tooNarrow(.8);
   return "";
 }
@@ -1512,6 +1557,8 @@ function glassCheck(key, w, h){
 function glassPrice(key, w, h){
   if (key === "folding"){ const p = roundUp(PRICING.products.folding.rate * w * h); return {lo:p, hi:p}; }
   if (key === "sliding"){ const s = slidingPrice(w, h); return {lo:roundUp(s/1.2), hi:roundUp(s)}; }
+  if (key === "fixed" || key === "door1" || key === "door2"){
+    const p = roundUp(FIXED_RATE * w * h + (key === "door2" ? 2 : key === "door1" ? 1 : 0) * DOOR_MECH); return {lo:p, hi:p}; }
   const p = PRICING.products.panorama.fixed; return {lo:p, hi:p};
 }
 
@@ -1560,7 +1607,7 @@ function buildScene(sp, open){
     const put = (b) => { const c = rotY(b.c, o.phi); M.boxes.push({...b, c:[c[0] + o.c[0], c[1], c[2] + o.c[2]], ry:(b.ry||0) + o.phi}); };
     if (o.sys){
       const n = o.parts || 1, pw = o.pw || o.w, pt = o.pt || 0, frame = ALU_COLOURS[sp.colour] || "#8C989D";
-      const parts = buildModel({key:o.sys, w:pw, d:o.h, colour:sp.colour}, open).boxes;
+      const parts = glassUnit(o.sys, pw, o.h, sp.colour, open);
       for (let k = 0; k < n; k++){
         const lx = -o.w/2 + pw/2 + k*(pw + pt);
         for (const b of parts) put({...b, c:[b.c[0] + lx, b.c[1], b.c[2]]});
@@ -1773,7 +1820,7 @@ function update(){
   $("opList").innerHTML = ops.map(o => `
     <div class="op${selOp === o.id ? " on" : ""}" data-id="${o.id}">
       <span class="tag${o.sys ? " has" : ""}">${o.letter}</span>
-      <div class="info">${sideName(o.side)}${o.sys ? ` · <span class="pr">${range(o.lo, o.hi)}</span>` : ""}<small>${o.parts > 1 ? `${o.parts} × ${f2(o.pw)} × ${f2(o.h)} m · ${t.plusPillars(o.extraPillars)}` : `${f2(o.w)} × ${f2(o.h)} m`}</small></div>
+      <div class="info">${sideName(o.side)}${o.sys ? ` · <span class="pr">${range(o.lo, o.hi)}</span>` : ""}<small>${o.parts > 1 ? `${o.parts} × ${f2(o.pw)} × ${f2(o.h)} m · ${t.plusPillars(o.extraPillars)}` : `${f2(o.w)} × ${f2(o.h)} m`}${o.sys === "door1" || o.sys === "door2" ? (() => { const L = doorLayout(o.sys, o.w, o.h); return ` · ${t.doorNote(L.n, f2(L.lw), f2(L.dh))}`; })() : ""}</small></div>
       <select data-id="${o.id}" aria-label="${t.bOpening} ${o.letter}">${sysOptions(o, o.sys)}</select>
     </div>`).join("");
   if (focused){ const s = document.querySelector(`.op select[data-id="${focused}"]`); if (s) s.focus({preventScroll:true}); }
