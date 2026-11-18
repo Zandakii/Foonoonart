@@ -1486,14 +1486,17 @@ c3d.addEventListener("keydown", e => {
   if (!k) return; e.preventDefault(); V3.auto = false; V3.yaw += k[0]; V3.pitch = Math.min(1.3, Math.max(-.45, V3.pitch + k[1]));
 });
 if ("IntersectionObserver" in window) new IntersectionObserver(es => { V3.visible = es[0].isIntersecting; }).observe(c3d);
-(function tick(){
+function tick(){
   if (V3.visible && !document.hidden && !$("view3d").classList.contains("hidden")){
     if (V3.auto && !reduceMotion){ V3.t += .006; V3.yaw = V3.yaw0 + .6*Math.sin(V3.t); }
     V3.open += (V3.target - V3.open) * .07; if (Math.abs(V3.target - V3.open) < .002) V3.open = V3.target;
-    render3D();
+    // draw only when something on screen changed, so an idle model costs nothing
+    const key = [V3.yaw, V3.pitch, V3.zoom, V3.open, V3.night, c3d.clientWidth, c3d.clientHeight, V3.spec && V3.spec.sel].join("|");
+    if (key !== tick.key || V3.spec !== tick.spec){ tick.key = key; tick.spec = V3.spec; render3D(); }
   }
   requestAnimationFrame(tick);
-})();
+}
+tick();
 
 
 
