@@ -2113,7 +2113,7 @@ if ("IntersectionObserver" in window) new IntersectionObserver(es => { V3.visibl
 function tick(){
   if (V3.visible && !document.hidden && !$("view3d").classList.contains("hidden")){
     if (V3.auto && !reduceMotion){ V3.t += .006; V3.yaw = V3.yaw0 + .6*Math.sin(V3.t); }
-    V3.open += (V3.target - V3.open) * .07; if (Math.abs(V3.target - V3.open) < .002) V3.open = V3.target;
+    V3.open += (V3.target - V3.open) * .035; if (Math.abs(V3.target - V3.open) < .002) V3.open = V3.target;
     // draw only when something on screen changed, so an idle model costs nothing
     const key = [V3.yaw, V3.pitch, V3.zoom, V3.open, V3.night, c3d.clientWidth, c3d.clientHeight, V3.spec && V3.spec.sel].join("|");
     if (key !== tick.key || V3.spec !== tick.spec){ tick.key = key; tick.spec = V3.spec; render3D(); }
@@ -2803,7 +2803,7 @@ function storyMiniScene(sp, open){
   $("miniNight").addEventListener("click", () => setEnv(0));
   $("miniOpen").addEventListener("click", () => {
     MINI.target = MINI.target ? 0 : 1; $("miniOpen").textContent = T[lang][MINI.target ? "closeAll" : "openAll"];
-    const step = () => { MINI.open += (MINI.target - MINI.open) * .15; if (Math.abs(MINI.target - MINI.open) < .002) MINI.open = MINI.target; redraw(); if (MINI.open !== MINI.target) requestAnimationFrame(step); };
+    const step = () => { MINI.open += (MINI.target - MINI.open) * .075; if (Math.abs(MINI.target - MINI.open) < .002) MINI.open = MINI.target; redraw(); if (MINI.open !== MINI.target) requestAnimationFrame(step); };
     step();
   });
   addEventListener("scroll", kick, {passive:true});
